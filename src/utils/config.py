@@ -4,6 +4,10 @@ StockVision AI — Centralized Configuration
 All application settings are loaded from environment variables (.env).
 Import `settings` anywhere in the project.
 
+Supports both:
+  - Local PostgreSQL: set DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD
+  - Supabase cloud:  set DATABASE_URL (from Supabase Dashboard → Settings → Database)
+
 Usage:
     from src.utils.config import settings
     print(settings.db_url)
@@ -21,12 +25,22 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 class Settings(BaseSettings):
     """Typed, validated application settings loaded from .env"""
 
-    # ── Database ──────────────────────────────────────────────────────────
+    # ── Database (individual fields — for local PostgreSQL) ────────────────
     db_host: str = Field(default="localhost", alias="DB_HOST")
     db_port: int = Field(default=5432, alias="DB_PORT")
     db_name: str = Field(default="stockvision_db", alias="DB_NAME")
     db_user: str = Field(default="postgres", alias="DB_USER")
     db_password: str = Field(default="", alias="DB_PASSWORD")
+
+    # ── Direct connection URL — Supabase / cloud DBs (takes priority) ─────
+    # Paste your Supabase "URI" connection string here:
+    # postgresql://postgres.xxxx:PASSWORD@aws-0-ap-south-1.pooler.supabase.com:5432/postgres
+    database_url: str = Field(default="", alias="DATABASE_URL")
+
+    # ── Supabase REST API (optional — for future REST integration) ─────────
+    supabase_url: str = Field(default="", alias="SUPABASE_URL")
+    supabase_anon_key: str = Field(default="", alias="SUPABASE_ANON_KEY")
+    supabase_service_key: str = Field(default="", alias="SUPABASE_SERVICE_KEY")
 
     # ── External APIs ─────────────────────────────────────────────────────
     alpha_vantage_api_key: str = Field(default="", alias="ALPHA_VANTAGE_API_KEY")
@@ -65,7 +79,22 @@ class Settings(BaseSettings):
     @computed_field
     @property
     def db_url(self) -> str:
-        """SQLAlchemy connection string for PostgreSQL"""
+        """
+        SQLAlchemy connection string.
+        Priority: DATABASE_URL env var  >  individual DB_* fields.
+
+        Supabase: paste the full URI from Dashboard → Settings → Database → URI
+        It looks like: postgresql://postgres.xxxx:PASSWORD@host.supabase.com:5432/postgres
+        """
+        if self.database_url:
+            # SQLAlchemy requires postgresql+psycopg2:// dialect prefix
+            url = self.database_url
+            if url.startswith("postgresql://"):
+                url = url.replace("postgresql://", "postgresql+psycopg2://", 1)
+            elif url.startswith("postgres://"):
+                url = url.replace("postgres://", "postgresql+psycopg2://", 1)
+            return url
+        # Build from individual fields (local PostgreSQL)
         return (
             f"postgresql+psycopg2://{self.db_user}:{self.db_password}"
             f"@{self.db_host}:{self.db_port}/{self.db_name}"
