@@ -1,0 +1,67 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# StockVision AI — .gitignore
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Environment
+.env
+*.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Data (raw data is large — track only processed metadata)
+data/raw/
+data/external/
+data/processed/*.csv
+
+# Models (large binary files — track only metrics)
+models/*.pkl
+models/*.joblib
+models/mlflow.db
+
+# Logs
+logs/
+*.log
+
+# MLflow artifacts
+mlruns/
+
+# IDE
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Reports (generated files)
+reports/*.html
+reports/*.pdf
+
+# Coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Docker
+.docker/
