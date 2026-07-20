@@ -9,6 +9,7 @@ import pandas as pd
 import numpy as np
 import pytest
 from unittest.mock import patch, MagicMock
+from datetime import date
 
 from src.ingestion.fetch_market_data import _normalize_yfinance_df
 from src.processing.validate_data import validate_price_dataframe
@@ -100,14 +101,12 @@ def test_validation_removes_duplicate_dates():
         "close_price": [105, 106, 107],
         "volume":      [500_000] * 3,
     })
-    from datetime import date
     result = validate_price_dataframe(df, "TCS.NS")
     assert len(result["clean_df"]) == 1
 
 
 def test_validation_detects_high_less_than_low():
     """Rows where high < low must be flagged and removed."""
-    from datetime import date
     df = pd.DataFrame({
         "trade_date":  [date(2024, 1, 2), date(2024, 1, 3)],
         "open_price":  [100, 100],
@@ -143,7 +142,6 @@ def test_cleaning_output_has_no_null_close(sample_raw_df):
 def test_data_quality_report():
     """generate_data_quality_report should return one row per ticker."""
     from src.processing.validate_data import generate_data_quality_report
-    from datetime import date
 
     dfs = {
         "TCS.NS": pd.DataFrame({
