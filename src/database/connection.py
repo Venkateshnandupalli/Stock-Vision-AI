@@ -146,10 +146,7 @@ def init_database(drop_existing: bool = False) -> None:
     engine = get_engine_singleton()
     with engine.connect() as conn:
         sql = schema_file.read_text(encoding="utf-8")
-        for statement in sql.split(";"):
-            stmt = statement.strip()
-            if stmt:
-                conn.execute(text(stmt))
+        conn.execute(text(sql))
         conn.commit()
     logger.info("Database schema initialised successfully.")
 

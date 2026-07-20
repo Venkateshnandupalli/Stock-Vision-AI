@@ -24,7 +24,7 @@ from src.utils.logger import logger
 from sqlalchemy import text
 
 def run_sql_file(file_path: Path, description: str) -> bool:
-    """Executes a SQL file containing multiple statements separated by semicolons."""
+    """Executes a SQL file containing multiple statements."""
     if not file_path.exists():
         logger.error(f"{description} file not found at {file_path}")
         return False
@@ -34,29 +34,8 @@ def run_sql_file(file_path: Path, description: str) -> bool:
         engine = get_engine_singleton()
         sql_content = file_path.read_text(encoding="utf-8")
         
-        # Split statements by semicolon, ignoring comments and whitespace
-        statements = []
-        current_stmt = []
-        for line in sql_content.splitlines():
-            # Strip comments
-            stripped = line.strip()
-            if stripped.startswith("--") or not stripped:
-                continue
-            current_stmt.append(line)
-            if ";" in line:
-                statements.append("\n".join(current_stmt))
-                current_stmt = []
-        
-        # Handle trailing statement without semicolon
-        if current_stmt:
-            statements.append("\n".join(current_stmt))
-            
         with engine.connect() as conn:
-            for stmt in statements:
-                stmt_clean = stmt.strip()
-                if stmt_clean:
-                    # Remove trailing semicolon if SQLAlchemy objects
-                    conn.execute(text(stmt_clean))
+            conn.execute(text(sql_content))
             conn.commit()
             
         logger.info(f"✅ {description} executed successfully.")
