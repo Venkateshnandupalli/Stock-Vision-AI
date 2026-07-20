@@ -80,8 +80,8 @@ def get_stock_prices(
         FROM    stock_prices sp
         JOIN    companies c ON c.company_id = sp.company_id
         WHERE   c.ticker = :ticker
-          AND   (:start_date IS NULL OR sp.trade_date >= :start_date::date)
-          AND   (:end_date   IS NULL OR sp.trade_date <= :end_date::date)
+          AND   (:start_date IS NULL OR sp.trade_date >= CAST(:start_date AS date))
+          AND   (:end_date   IS NULL OR sp.trade_date <= CAST(:end_date AS date))
         ORDER BY sp.trade_date ASC
     """)
     with get_session() as session:
@@ -112,7 +112,7 @@ def get_technical_indicators(
         FROM    technical_indicators ti
         JOIN    companies c ON c.company_id = ti.company_id
         WHERE   c.ticker = :ticker
-          AND   (:start_date IS NULL OR ti.trade_date >= :start_date::date)
+          AND   (:start_date IS NULL OR ti.trade_date >= CAST(:start_date AS date))
         ORDER BY ti.trade_date ASC
     """)
     with get_session() as session:
