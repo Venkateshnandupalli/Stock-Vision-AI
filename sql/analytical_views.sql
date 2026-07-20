@@ -100,19 +100,26 @@ COMMENT ON VIEW vw_monthly_returns IS
 -- Purpose: Aggregated sector-level performance for benchmark comparison
 -- =============================================================================
 CREATE OR REPLACE VIEW vw_sector_performance AS
-WITH returns_cte AS (
+WITH daily_returns AS (
     SELECT
+        c.company_id,
         c.sector,
         sp.trade_date,
-        AVG(
-            (sp.close_price - LAG(sp.close_price) OVER (PARTITION BY c.company_id ORDER BY sp.trade_date))
-            / NULLIF(LAG(sp.close_price) OVER (PARTITION BY c.company_id ORDER BY sp.trade_date), 0) * 100
-        ) AS avg_daily_return_pct,
-        AVG(sp.close_price) AS avg_close_price
+        sp.close_price,
+        (sp.close_price - LAG(sp.close_price) OVER (PARTITION BY c.company_id ORDER BY sp.trade_date))
+            / NULLIF(LAG(sp.close_price) OVER (PARTITION BY c.company_id ORDER BY sp.trade_date), 0) * 100 AS daily_return_pct
     FROM stock_prices sp
     JOIN companies    c ON c.company_id = sp.company_id
     WHERE c.sector != 'Benchmark'
-    GROUP BY c.sector, sp.trade_date
+),
+returns_cte AS (
+    SELECT
+        sector,
+        trade_date,
+        AVG(daily_return_pct) AS avg_daily_return_pct,
+        AVG(close_price) AS avg_close_price
+    FROM daily_returns
+    GROUP BY sector, trade_date
 )
 SELECT
     sector,
