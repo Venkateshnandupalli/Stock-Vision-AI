@@ -18,6 +18,17 @@ from src.database.connection import get_session
 from src.utils.logger import logger
 
 
+def _convert_numeric_cols(df: pd.DataFrame) -> pd.DataFrame:
+    """Convert any decimal or numeric column from the database into standard float."""
+    for col in df.columns:
+        if col not in ["trade_date", "ticker", "model_name", "predicted_direction", "actual_direction", "prediction_date", "target_date"]:
+            try:
+                df[col] = df[col].astype(float)
+            except (ValueError, TypeError):
+                pass
+    return df
+
+
 # ── READ queries ────────────────────────────────────────────────────────────
 
 def get_latest_price_date(ticker: str) -> Optional[date]:
@@ -91,7 +102,7 @@ def get_stock_prices(
             "end_date": end_date,
         })
         df = pd.DataFrame(result.fetchall(), columns=result.keys())
-    return df
+    return _convert_numeric_cols(df)
 
 
 def get_all_tickers() -> list[str]:
@@ -118,7 +129,7 @@ def get_technical_indicators(
     with get_session() as session:
         result = session.execute(sql, {"ticker": ticker, "start_date": start_date})
         df = pd.DataFrame(result.fetchall(), columns=result.keys())
-    return df
+    return _convert_numeric_cols(df)
 
 
 def get_latest_predictions(ticker: Optional[str] = None) -> pd.DataFrame:
@@ -141,7 +152,7 @@ def get_latest_predictions(ticker: Optional[str] = None) -> pd.DataFrame:
     with get_session() as session:
         result = session.execute(sql, {"ticker": ticker})
         df = pd.DataFrame(result.fetchall(), columns=result.keys())
-    return df
+    return _convert_numeric_cols(df)
 
 
 def get_model_metrics() -> pd.DataFrame:
@@ -150,7 +161,7 @@ def get_model_metrics() -> pd.DataFrame:
     with get_session() as session:
         result = session.execute(sql)
         df = pd.DataFrame(result.fetchall(), columns=result.keys())
-    return df
+    return _convert_numeric_cols(df)
 
 
 # ── WRITE queries ────────────────────────────────────────────────────────────
