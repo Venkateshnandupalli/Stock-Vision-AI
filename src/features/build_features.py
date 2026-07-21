@@ -345,6 +345,9 @@ def build_features_for_ticker(ticker: str, save_csv: bool = True) -> pd.DataFram
     df = add_target_variables(df)
     df = apply_lags(df)
 
+    # Replace infinite values with NaN to prevent database numeric overflow
+    df = df.replace([np.inf, -np.inf], np.nan)
+
     # Add ticker column
     df["ticker"] = ticker
 
