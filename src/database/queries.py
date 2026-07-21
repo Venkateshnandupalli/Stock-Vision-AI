@@ -214,35 +214,47 @@ def upsert_stock_prices(df: pd.DataFrame, ticker: str) -> int:
     for rec in records:
         rec["company_id"] = company_id
 
-    sql = text("""
-        INSERT INTO stock_prices (
-            company_id, trade_date, open_price, high_price, low_price,
-            close_price, adjusted_close, volume, dividend, stock_split,
-            data_source, ingested_at
-        )
-        VALUES (
-            :company_id, :trade_date, :open_price, :high_price, :low_price,
-            :close_price, :adjusted_close, :volume, :dividend, :stock_split,
-            :data_source, NOW()
-        )
-        ON CONFLICT (company_id, trade_date) DO UPDATE SET
-            open_price     = EXCLUDED.open_price,
-            high_price     = EXCLUDED.high_price,
-            low_price      = EXCLUDED.low_price,
-            close_price    = EXCLUDED.close_price,
-            adjusted_close = EXCLUDED.adjusted_close,
-            volume         = EXCLUDED.volume,
-            dividend       = EXCLUDED.dividend,
-            stock_split    = EXCLUDED.stock_split,
-            ingested_at    = NOW()
-    """)
+    fields = [
+        "company_id", "trade_date", "open_price", "high_price", "low_price",
+        "close_price", "adjusted_close", "volume", "dividend", "stock_split",
+        "data_source"
+    ]
 
     chunk_size = 200
     total_upserted = 0
     for i in range(0, len(records), chunk_size):
         chunk = records[i:i+chunk_size]
+        
+        value_clauses = []
+        params = {}
+        for row_idx, row in enumerate(chunk):
+            row_params = []
+            for field in fields:
+                param_name = f"r_{row_idx}_{field}"
+                row_params.append(f":{param_name}")
+                params[param_name] = row.get(field)
+            row_params.append("NOW()")
+            value_clauses.append(f"({', '.join(row_params)})")
+            
+        sql_text = f"""
+            INSERT INTO stock_prices (
+                {", ".join(fields)}, ingested_at
+            )
+            VALUES 
+                {", ".join(value_clauses)}
+            ON CONFLICT (company_id, trade_date) DO UPDATE SET
+                open_price     = EXCLUDED.open_price,
+                high_price     = EXCLUDED.high_price,
+                low_price      = EXCLUDED.low_price,
+                close_price    = EXCLUDED.close_price,
+                adjusted_close = EXCLUDED.adjusted_close,
+                volume         = EXCLUDED.volume,
+                dividend       = EXCLUDED.dividend,
+                stock_split    = EXCLUDED.stock_split,
+                ingested_at    = NOW()
+        """
         with get_session() as session:
-            session.execute(sql, chunk)
+            session.execute(text(sql_text), params)
         total_upserted += len(chunk)
 
     logger.info("Upserted {n} price records for {ticker}", n=total_upserted, ticker=ticker)
@@ -262,37 +274,45 @@ def upsert_indicators(df: pd.DataFrame, ticker: str) -> int:
     for rec in records:
         rec["company_id"] = company_id
 
-    sql = text("""
-        INSERT INTO technical_indicators (
-            company_id, trade_date, daily_return, log_return,
-            sma_5, sma_10, sma_20, sma_50, ema_20,
-            rsi_14, macd, macd_signal, macd_hist,
-            bollinger_upper, bollinger_lower, bollinger_pct,
-            volatility_20d, atr_14,
-            volume_change, volume_sma_20, relative_volume
-        )
-        VALUES (
-            :company_id, :trade_date, :daily_return, :log_return,
-            :sma_5, :sma_10, :sma_20, :sma_50, :ema_20,
-            :rsi_14, :macd, :macd_signal, :macd_hist,
-            :bollinger_upper, :bollinger_lower, :bollinger_pct,
-            :volatility_20d, :atr_14,
-            :volume_change, :volume_sma_20, :relative_volume
-        )
-        ON CONFLICT (company_id, trade_date) DO UPDATE SET
-            daily_return     = EXCLUDED.daily_return,
-            rsi_14           = EXCLUDED.rsi_14,
-            macd             = EXCLUDED.macd,
-            volatility_20d   = EXCLUDED.volatility_20d,
-            relative_volume  = EXCLUDED.relative_volume
-    """)
+    fields = [
+        "company_id", "trade_date", "daily_return", "log_return",
+        "sma_5", "sma_10", "sma_20", "sma_50", "ema_20",
+        "rsi_14", "macd", "macd_signal", "macd_hist",
+        "bollinger_upper", "bollinger_lower", "bollinger_pct",
+        "volatility_20d", "atr_14",
+        "volume_change", "volume_sma_20", "relative_volume"
+    ]
 
     chunk_size = 200
     total_upserted = 0
     for i in range(0, len(records), chunk_size):
         chunk = records[i:i+chunk_size]
+        
+        value_clauses = []
+        params = {}
+        for row_idx, row in enumerate(chunk):
+            row_params = []
+            for field in fields:
+                param_name = f"r_{row_idx}_{field}"
+                row_params.append(f":{param_name}")
+                params[param_name] = row.get(field)
+            value_clauses.append(f"({', '.join(row_params)})")
+            
+        sql_text = f"""
+            INSERT INTO technical_indicators (
+                {", ".join(fields)}
+            )
+            VALUES 
+                {", ".join(value_clauses)}
+            ON CONFLICT (company_id, trade_date) DO UPDATE SET
+                daily_return     = EXCLUDED.daily_return,
+                rsi_14           = EXCLUDED.rsi_14,
+                macd             = EXCLUDED.macd,
+                volatility_20d   = EXCLUDED.volatility_20d,
+                relative_volume  = EXCLUDED.relative_volume
+        """
         with get_session() as session:
-            session.execute(sql, chunk)
+            session.execute(text(sql_text), params)
         total_upserted += len(chunk)
 
     return total_upserted
