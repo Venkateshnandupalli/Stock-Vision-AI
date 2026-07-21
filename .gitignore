@@ -31,6 +31,7 @@ ENV/
 data/raw/
 data/external/
 data/processed/*.csv
+data/processed/*.parquet
 
 # Models (large binary files — track only metrics)
 models/*.pkl
