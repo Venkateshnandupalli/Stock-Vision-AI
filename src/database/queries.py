@@ -237,11 +237,16 @@ def upsert_stock_prices(df: pd.DataFrame, ticker: str) -> int:
             ingested_at    = NOW()
     """)
 
-    with get_session() as session:
-        session.execute(sql, records)
+    chunk_size = 200
+    total_upserted = 0
+    for i in range(0, len(records), chunk_size):
+        chunk = records[i:i+chunk_size]
+        with get_session() as session:
+            session.execute(sql, chunk)
+        total_upserted += len(chunk)
 
-    logger.info("Upserted {n} price records for {ticker}", n=len(records), ticker=ticker)
-    return len(records)
+    logger.info("Upserted {n} price records for {ticker}", n=total_upserted, ticker=ticker)
+    return total_upserted
 
 
 def upsert_indicators(df: pd.DataFrame, ticker: str) -> int:
@@ -282,10 +287,15 @@ def upsert_indicators(df: pd.DataFrame, ticker: str) -> int:
             relative_volume  = EXCLUDED.relative_volume
     """)
 
-    with get_session() as session:
-        session.execute(sql, records)
+    chunk_size = 200
+    total_upserted = 0
+    for i in range(0, len(records), chunk_size):
+        chunk = records[i:i+chunk_size]
+        with get_session() as session:
+            session.execute(sql, chunk)
+        total_upserted += len(chunk)
 
-    return len(records)
+    return total_upserted
 
 
 def insert_prediction(record: dict) -> None:
