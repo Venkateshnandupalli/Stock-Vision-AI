@@ -133,8 +133,8 @@ async def list_stocks():
 @app.get("/stocks/{ticker}/history", tags=["Market Data"])
 async def get_stock_history(
     ticker: str,
-    start_date: Optional[str] = Query(None, example="2024-01-01"),
-    end_date:   Optional[str] = Query(None, example="2024-12-31"),
+    start_date: Optional[str] = Query(None, examples=["2024-01-01"]),
+    end_date:   Optional[str] = Query(None, examples=["2024-12-31"]),
     limit:      int = Query(252, le=2000),
 ):
     """
@@ -220,7 +220,7 @@ async def forecast_ticker(
     ticker:     str,
     model_name: str  = Query("xgboost_regressor"),
     horizon:    int  = Query(1, ge=1, le=5),
-    task:       str  = Query("regression", regex="^(regression|classification)$"),
+    task:       str  = Query("regression", pattern="^(regression|classification)$"),
 ):
     """
     Generate a return forecast for the next N trading days.
