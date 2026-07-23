@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StockVision AI &mdash; Market Analytics &amp; Price Forecasting Platform</title>
+  <meta name="description" content="End-to-end stock market analytics platform powered by ML. Track NIFTY 50 stocks, engineer 50+ technical indicators, and forecast price movements with XGBoost, Random Forest and more." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📈</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #050d1a; --bg2: #091424; --card: rgba(255,255,255,0.04);
+      --border: rgba(255,255,255,0.08);
+      --blue: #00c2ff; --teal: #00e5c8; --green: #00f5a0; --purple: #7c4dff;
+      --t1: #ffffff; --t2: #a0b4cc; --t3: #536a80;
+      --r: 20px;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--t1); overflow-x: hidden; line-height: 1.6; }
+    ::-webkit-scrollbar { width: 5px; } ::-webkit-scrollbar-track { background: var(--bg); } ::-webkit-scrollbar-thumb { background: var(--blue); border-radius: 3px; }
+
+    /* Background */
+    .bg-mesh { position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 80% 50% at 20% 20%,rgba(0,194,255,.07) 0%,transparent 60%),radial-gradient(ellipse 60% 40% at 80% 80%,rgba(124,77,255,.07) 0%,transparent 60%),radial-gradient(ellipse 50% 60% at 50% 50%,rgba(0,229,200,.04) 0%,transparent 70%); }
+    .bg-grid { position:fixed;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(0,194,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,194,255,.04) 1px,transparent 1px);background-size:60px 60px;mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black 20%,transparent 100%); }
+    .particles { position:fixed;inset:0;z-index:0;pointer-events:none; }
+    .particle { position:absolute;width:2px;height:2px;background:var(--blue);border-radius:50%;animation:float linear infinite;opacity:0; }
+    @keyframes float { 0%{transform:translateY(100vh);opacity:0}10%{opacity:.6}90%{opacity:.3}100%{transform:translateY(-10vh) translateX(40px);opacity:0} }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.3)} }
+    @keyframes drawLine { to{stroke-dashoffset:0} }
+    @keyframes fadeArea { to{opacity:1} }
+    @keyframes bobUp   { 0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)} }
+    @keyframes bobDown { 0%,100%{transform:translateY(0)}50%{transform:translateY(8px)} }
+    @keyframes marquee { 0%{transform:translateX(0)}100%{transform:translateX(-50%)} }
+
+    /* Layout */
+    .container { max-width:1240px;margin:0 auto;padding:0 2rem;position:relative;z-index:1; }
+    .divider { height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent); }
+    .reveal { opacity:0;transform:translateY(30px);transition:opacity .7s ease,transform .7s ease; }
+    .reveal.visible { opacity:1;transform:none; }
+    .grad-text { background:linear-gradient(135deg,var(--blue) 0%,var(--teal) 50%,var(--green) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text; }
+
+    /* Nav */
+    nav { position:fixed;top:0;left:0;right:0;z-index:100;padding:1.2rem 0;backdrop-filter:blur(20px);border-bottom:1px solid transparent;transition:all .3s; }
+    nav.scrolled { background:rgba(5,13,26,.85);border-bottom-color:var(--border); }
+    .nav-inner { display:flex;align-items:center;justify-content:space-between;max-width:1240px;margin:0 auto;padding:0 2rem; }
+    .nav-logo { display:flex;align-items:center;gap:.6rem;font-weight:700;font-size:1.1rem;text-decoration:none;color:var(--t1); }
+    .logo-badge { width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--blue),var(--teal));display:flex;align-items:center;justify-content:center;font-size:1rem;box-shadow:0 0 20px rgba(0,194,255,.3); }
+    .nav-links { display:flex;gap:2rem;list-style:none; }
+    .nav-links a { text-decoration:none;color:var(--t2);font-size:.9rem;font-weight:500;transition:color .2s; }
+    .nav-links a:hover { color:var(--t1); }
+    .nav-cta { padding:.5rem 1.3rem;background:linear-gradient(135deg,var(--blue),var(--teal));border:none;border-radius:8px;color:#050d1a;font-weight:700;font-size:.88rem;cursor:pointer;text-decoration:none;transition:transform .2s,box-shadow .2s;box-shadow:0 0 20px rgba(0,194,255,.25); }
+    .nav-cta:hover { transform:translateY(-1px);box-shadow:0 0 30px rgba(0,194,255,.4); }
+
+    /* Hero */
+    .hero { min-height:100vh;display:flex;align-items:center;padding:8rem 0 5rem;position:relative; }
+    .hero-inner { display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center; }
+    .hero-badge { display:inline-flex;align-items:center;gap:.5rem;background:rgba(0,194,255,.1);border:1px solid rgba(0,194,255,.25);border-radius:100px;padding:.35rem 1rem;font-size:.78rem;font-weight:600;color:var(--blue);margin-bottom:1.5rem;letter-spacing:.5px;text-transform:uppercase; }
+    .badge-dot { width:6px;height:6px;border-radius:50%;background:var(--teal);animation:pulse 2s ease-in-out infinite; }
+    .hero h1 { font-size:clamp(2.4rem,4.5vw,3.8rem);font-weight:900;line-height:1.1;letter-spacing:-1.5px;margin-bottom:1.4rem; }
+    .hero p { font-size:1.05rem;color:var(--t2);line-height:1.7;margin-bottom:2.5rem;max-width:520px; }
+    .hero-actions { display:flex;gap:1rem;flex-wrap:wrap; }
+    .btn-primary { padding:.85rem 2rem;background:linear-gradient(135deg,var(--blue),var(--teal));border:none;border-radius:12px;color:#050d1a;font-weight:700;font-size:.95rem;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:.5rem;transition:transform .2s,box-shadow .2s;box-shadow:0 0 30px rgba(0,194,255,.3); }
+    .btn-primary:hover { transform:translateY(-2px);box-shadow:0 0 45px rgba(0,194,255,.45); }
+    .btn-secondary { padding:.85rem 2rem;background:transparent;border:1px solid var(--border);border-radius:12px;color:var(--t1);font-weight:600;font-size:.95rem;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:.5rem;transition:all .2s;backdrop-filter:blur(10px); }
+    .btn-secondary:hover { border-color:var(--blue);color:var(--blue); }
+    .hero-stats { display:flex;gap:2.5rem;margin-top:3rem;padding-top:2rem;border-top:1px solid var(--border); }
+    .stat { display:flex;flex-direction:column; }
+    .stat-value { font-size:1.6rem;font-weight:800;background:linear-gradient(135deg,var(--blue),var(--teal));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text; }
+    .stat-label { font-size:.8rem;color:var(--t3);margin-top:.1rem; }
+
+    /* Hero Visual */
+    .hero-visual { position:relative;display:flex;align-items:center;justify-content:center; }
+    .chart-card { background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r);padding:1.5rem;backdrop-filter:blur(20px);width:100%;position:relative;overflow:hidden;box-shadow:0 0 60px rgba(0,194,255,.08),0 40px 80px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.08); }
+    .chart-card::before { content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle,rgba(0,194,255,.03) 0%,transparent 50%);pointer-events:none; }
+    .chart-header { display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.2rem; }
+    .chart-ticker { font-weight:700;font-size:1rem; }
+    .chart-company { font-size:.75rem;color:var(--t3);margin-top:2px; }
+    .chart-price-val { font-size:1.5rem;font-weight:800;font-family:'JetBrains Mono',monospace;text-align:right; }
+    .chart-delta { font-size:.8rem;font-weight:600;color:var(--green);display:flex;align-items:center;gap:3px;justify-content:flex-end;margin-top:2px; }
+    .chart-svg-wrap { width:100%;height:180px;position:relative;margin-bottom:1rem; }
+    svg.lc { width:100%;height:100%; }
+    .chart-path { stroke-dasharray:1000;stroke-dashoffset:1000;animation:drawLine 2.5s ease forwards; }
+    .chart-area-path { opacity:0;animation:fadeArea 2.5s ease forwards .5s; }
+    .ind-row { display:flex;gap:.5rem;flex-wrap:wrap; }
+    .ind-pill { padding:.28rem .65rem;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:100px;font-size:.7rem;font-weight:600;color:var(--t2);font-family:'JetBrains Mono',monospace; }
+    .ind-pill.up { color:var(--teal);border-color:rgba(0,229,200,.25);background:rgba(0,229,200,.06); }
+    .ind-pill.warn { color:#ffc107;border-color:rgba(255,193,7,.25);background:rgba(255,193,7,.06); }
+    .float-card { position:absolute;background:rgba(255,255,255,.07);border:1px solid var(--border);border-radius:12px;padding:.8rem 1rem;backdrop-filter:blur(20px);box-shadow:0 10px 30px rgba(0,0,0,.3); }
+    .float-card-1 { top:-2rem;right:-1.5rem;animation:bobUp 4s ease-in-out infinite; }
+    .float-card-2 { bottom:0;left:-2rem;animation:bobDown 5s ease-in-out infinite; }
+    .float-label { font-size:.68rem;color:var(--t3);margin-bottom:2px; }
+    .float-value { font-size:.9rem;font-weight:700;font-family:'JetBrains Mono',monospace; }
+    .fv-green { color:var(--green); } .fv-blue { color:var(--blue); }
+
+    /* Ticker bar */
+    .ticker-bar { border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:rgba(255,255,255,.02);padding:.7rem 0;overflow:hidden;position:relative;z-index:1; }
+    .ticker-track { display:flex;gap:3rem;animation:marquee 25s linear infinite;width:max-content; }
+    .ticker-item { display:flex;align-items:center;gap:.6rem;white-space:nowrap;font-size:.82rem; }
+    .t-sym { font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--t1); }
+    .t-px  { color:var(--t2); }
+    .t-chg { font-weight:600; } .t-chg.up{color:var(--green);} .t-chg.dn{color:#ff6b6b;}
+    .t-sep { color:var(--t3); }
+
+    /* Section */
+    section { padding:6rem 0;position:relative;z-index:1; }
+    .sec-label { font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--blue);margin-bottom:.8rem; }
+    .sec-title { font-size:clamp(1.8rem,3vw,2.6rem);font-weight:800;letter-spacing:-.8px;line-height:1.2;margin-bottom:1rem; }
+    .sec-sub { font-size:1.05rem;color:var(--t2);max-width:560px;line-height:1.7; }
+
+    /* Stats bar */
+    .stats-bar { display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border-radius:var(--r);overflow:hidden;border:1px solid var(--border); }
+    .sbi { background:rgba(255,255,255,.02);padding:2.5rem 2rem;text-align:center;transition:background .3s; }
+    .sbi:hover { background:rgba(0,194,255,.05); }
+    .sbi-num { font-size:2.8rem;font-weight:900;letter-spacing:-2px;background:linear-gradient(135deg,var(--blue),var(--teal));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1; }
+    .sbi-lbl { font-size:.82rem;color:var(--t3);margin-top:.4rem; }
+
+    /* Features */
+    .feat-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-top:3.5rem; }
+    .feat-card { background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:2rem;transition:all .3s;position:relative;overflow:hidden; }
+    .feat-card::after { content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,194,255,.08),transparent);opacity:0;transition:opacity .3s; }
+    .feat-card:hover { transform:translateY(-6px);border-color:rgba(0,194,255,.3); }
+    .feat-card:hover::after { opacity:1; }
+    .feat-icon { width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin-bottom:1.2rem;position:relative;z-index:1; }
+    .ic-b{background:rgba(0,194,255,.12);} .ic-t{background:rgba(0,229,200,.12);} .ic-p{background:rgba(124,77,255,.12);} .ic-g{background:rgba(0,245,160,.12);} .ic-o{background:rgba(255,171,64,.12);} .ic-pk{background:rgba(255,64,129,.12);}
+    .feat-card h3 { font-size:1.05rem;font-weight:700;margin-bottom:.6rem;position:relative;z-index:1; }
+    .feat-card p  { font-size:.88rem;color:var(--t2);line-height:1.6;position:relative;z-index:1; }
+
+    /* Pipeline */
+    .pipe-wrap { display:flex;align-items:center;gap:0;margin-top:3rem;flex-wrap:wrap; }
+    .pipe-step { flex:1;min-width:130px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.5rem 1rem;text-align:center;transition:all .3s; }
+    .pipe-step:hover { border-color:rgba(0,194,255,.35);transform:translateY(-4px); }
+    .pipe-step .ps-icon { font-size:1.8rem;margin-bottom:.5rem; }
+    .pipe-step h4 { font-size:.85rem;font-weight:700;margin-bottom:.3rem; }
+    .pipe-step p { font-size:.73rem;color:var(--t3); }
+    .pipe-arrow { font-size:1.1rem;color:var(--blue);padding:0 .4rem;opacity:.5;flex-shrink:0; }
+
+    /* Models */
+    .model-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:3rem; }
+    .model-card { background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.4rem 1.6rem;display:flex;align-items:center;justify-content:space-between;transition:all .3s; }
+    .model-card:hover { border-color:rgba(0,229,200,.35);transform:scale(1.02); }
+    .ml h4 { font-size:.95rem;font-weight:700;margin-bottom:.2rem; }
+    .ml p  { font-size:.75rem;color:var(--t3); }
+    .mbadge { padding:.3rem .7rem;border-radius:100px;font-size:.7rem;font-weight:700; }
+    .mb-best { background:rgba(0,245,160,.15);color:var(--green);border:1px solid rgba(0,245,160,.25); }
+    .mb-reg  { background:rgba(0,194,255,.1);color:var(--blue);border:1px solid rgba(0,194,255,.2); }
+    .mb-clf  { background:rgba(124,77,255,.1);color:#a67cff;border:1px solid rgba(124,77,255,.2); }
+
+    /* Tech chips */
+    .tech-grid { display:flex;flex-wrap:wrap;gap:1rem;margin-top:2.5rem; }
+    .tech-chip { display:flex;align-items:center;gap:.5rem;padding:.55rem 1.1rem;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:100px;font-size:.85rem;font-weight:500;transition:all .2s; }
+    .tech-chip:hover { border-color:rgba(0,194,255,.35);background:rgba(0,194,255,.06);color:var(--blue); }
+    .tc-dot { width:8px;height:8px;border-radius:50%;flex-shrink:0; }
+
+    /* Stocks */
+    .stocks-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem;margin-top:2.5rem; }
+    .stock-chip { background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1rem 1.2rem;transition:all .25s; }
+    .stock-chip:hover { border-color:rgba(0,194,255,.3);transform:translateY(-3px); }
+    .sc-sym  { font-family:'JetBrains Mono',monospace;font-weight:700;font-size:.9rem;color:var(--blue); }
+    .sc-name { font-size:.78rem;color:var(--t2);margin-top:.2rem; }
+    .sc-sec  { margin-top:.5rem;font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--t3); }
+
+    /* CTA */
+    .cta-banner { background:linear-gradient(135deg,rgba(0,194,255,.08),rgba(0,229,200,.05),rgba(124,77,255,.08));border:1px solid rgba(0,194,255,.15);border-radius:var(--r);padding:5rem 3rem;text-align:center;position:relative;overflow:hidden; }
+    .cta-banner::before { content:'';position:absolute;top:-100px;left:50%;transform:translateX(-50%);width:400px;height:400px;background:radial-gradient(circle,rgba(0,194,255,.1) 0%,transparent 70%);pointer-events:none; }
+    .cta-banner h2 { font-size:clamp(1.8rem,3vw,2.5rem);font-weight:900;letter-spacing:-1px;margin-bottom:1rem; }
+    .cta-banner p { color:var(--t2);max-width:500px;margin:0 auto 2.5rem;line-height:1.7; }
+    .cta-actions { display:flex;gap:1rem;justify-content:center;flex-wrap:wrap; }
+
+    /* Footer */
+    footer { border-top:1px solid var(--border);padding:3rem 0 2rem;position:relative;z-index:1; }
+    .footer-inner { display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1.5rem; }
+    .footer-brand { display:flex;align-items:center;gap:.6rem;font-weight:700; }
+    .footer-badge { width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--blue),var(--teal));display:flex;align-items:center;justify-content:center;font-size:.9rem; }
+    .footer-links { display:flex;gap:2rem; }
+    .footer-links a { text-decoration:none;font-size:.85rem;color:var(--t3);transition:color .2s; }
+    .footer-links a:hover { color:var(--t1); }
+    .footer-disclaimer { width:100%;text-align:center;font-size:.75rem;color:var(--t3);padding-top:2rem;margin-top:2rem;border-top:1px solid var(--border); }
+
+    /* Responsive */
+    @media(max-width:900px){.hero-inner{grid-template-columns:1fr;}.hero-visual{display:none;}.feat-grid{grid-template-columns:1fr 1fr;}.model-grid{grid-template-columns:1fr 1fr;}.stats-bar{grid-template-columns:1fr 1fr;}}
+    @media(max-width:600px){.feat-grid,.model-grid{grid-template-columns:1fr;}.nav-links{display:none;}.pipe-wrap{flex-direction:column;}.pipe-arrow{transform:rotate(90deg);}}
+  </style>
+</head>
+<body>
+<div class="bg-mesh"></div>
+<div class="bg-grid"></div>
+<div class="particles" id="pts"></div>
+
+<!-- Nav -->
+<nav id="nav">
+  <div class="nav-inner">
+    <a class="nav-logo" href="#">
+      <div class="logo-badge">📈</div>
+      StockVision AI
+    </a>
+    <ul class="nav-links">
+      <li><a href="#features">Features</a></li>
+      <li><a href="#pipeline">Pipeline</a></li>
+      <li><a href="#models">Models</a></li>
+      <li><a href="#stack">Tech Stack</a></li>
+      <li><a href="#stocks">Universe</a></li>
+    </ul>
+    <a href="http://localhost:8501" class="nav-cta">Launch Dashboard &rarr;</a>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-inner">
+      <div>
+        <div class="hero-badge"><span class="badge-dot"></span>Live Market Analytics Platform</div>
+        <h1>Intelligent<br/><span class="grad-text">Stock Market</span><br/>Forecasting</h1>
+        <p>End-to-end ML pipeline that ingests NIFTY 50 market data, engineers 50+ technical indicators, and forecasts next-day &amp; 5-day price movements using XGBoost, Random Forest, and more.</p>
+        <div class="hero-actions">
+          <a href="http://localhost:8501" class="btn-primary">📊 Launch Dashboard</a>
+          <a href="http://localhost:8000/docs" class="btn-secondary">⚡ API Docs</a>
+        </div>
+        <div class="hero-stats">
+          <div class="stat"><span class="stat-value">18.6K+</span><span class="stat-label">Price Records</span></div>
+          <div class="stat"><span class="stat-value">164</span><span class="stat-label">Trained Models</span></div>
+          <div class="stat"><span class="stat-value">50+</span><span class="stat-label">Indicators</span></div>
+          <div class="stat"><span class="stat-value">39/39</span><span class="stat-label">Tests Passing</span></div>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="float-card float-card-1">
+          <div class="float-label">XGBoost Accuracy</div>
+          <div class="float-value fv-green">&#9650; 67.4%</div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <div class="chart-ticker">TCS.NS</div>
+              <div class="chart-company">Tata Consultancy Services</div>
+            </div>
+            <div>
+              <div class="chart-price-val" id="hp">&#8377;3,842.50</div>
+              <div class="chart-delta" id="hd">&#9650; +1.84% today</div>
+            </div>
+          </div>
+          <div class="chart-svg-wrap">
+            <svg class="lc" viewBox="0 0 500 180" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="lg1" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stop-color="#00c2ff"/>
+                  <stop offset="50%" stop-color="#00e5c8"/>
+                  <stop offset="100%" stop-color="#00f5a0"/>
+                </linearGradient>
+                <linearGradient id="lg2" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#00c2ff" stop-opacity="0.15"/>
+                  <stop offset="100%" stop-color="#00c2ff" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              <path class="chart-area-path" d="M0 130 C30 120,60 140,90 115 C120 90,150 105,180 80 C210 55,240 70,270 50 C300 30,330 60,360 40 C390 20,420 35,450 20 C470 10,490 15,500 12 L500 180 L0 180 Z" fill="url(#lg2)"/>
+              <path class="chart-path" d="M0 130 C30 120,60 140,90 115 C120 90,150 105,180 80 C210 55,240 70,270 50 C300 30,330 60,360 40 C390 20,420 35,450 20 C470 10,490 15,500 12" fill="none" stroke="url(#lg1)" stroke-width="2.5" stroke-linecap="round"/>
+              <circle cx="500" cy="12" r="5" fill="#00f5a0" opacity="0.9">
+                <animate attributeName="r" values="4;7;4" dur="2s" repeatCount="indefinite"/>
+                <animate attributeName="opacity" values="0.9;0.4;0.9" dur="2s" repeatCount="indefinite"/>
+              </circle>
+            </svg>
+          </div>
+          <div class="ind-row">
+            <div class="ind-pill up">RSI 58.3</div>
+            <div class="ind-pill up">MACD &#9650;</div>
+            <div class="ind-pill warn">BB Mid</div>
+            <div class="ind-pill up">SMA20 &#9650;</div>
+            <div class="ind-pill up">Vol +12%</div>
+          </div>
+        </div>
+        <div class="float-card float-card-2">
+          <div class="float-label">1-Day Forecast</div>
+          <div class="float-value fv-blue">+1.2% &#8593;</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Ticker -->
+<div class="ticker-bar">
+  <div class="ticker-track" id="tt"></div>
+</div>
+
+<!-- Stats -->
+<section style="padding:4rem 0">
+  <div class="container">
+    <div class="stats-bar reveal" id="sb">
+      <div class="sbi"><div class="sbi-num" data-target="18659">0</div><div class="sbi-lbl">Stock Price Records</div></div>
+      <div class="sbi"><div class="sbi-num" data-target="16260">0</div><div class="sbi-lbl">Indicator Rows</div></div>
+      <div class="sbi"><div class="sbi-num" data-target="164">0</div><div class="sbi-lbl">Trained ML Models</div></div>
+      <div class="sbi"><div class="sbi-num" data-target="39">0</div><div class="sbi-lbl">Passing Tests</div></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- Features -->
+<section id="features">
+  <div class="container">
+    <div class="reveal">
+      <div class="sec-label">Core Capabilities</div>
+      <h2 class="sec-title">Everything you need to<br/>analyze Indian equities</h2>
+      <p class="sec-sub">From raw OHLCV data to actionable ML forecasts &mdash; all in one integrated platform.</p>
+    </div>
+    <div class="feat-grid">
+      <div class="feat-card reveal"><div class="feat-icon ic-b">🔄</div><h3>Automated ETL Pipeline</h3><p>Ingests historical OHLCV data from yfinance with validation, cleaning, and incremental loading. Supports full-reload and dry-run modes.</p></div>
+      <div class="feat-card reveal"><div class="feat-icon ic-t">📐</div><h3>50+ Technical Indicators</h3><p>SMA, EMA, RSI, MACD, Bollinger Bands, ATR, Stochastic, lag features and calendar effects. All lag-safe with zero future leakage.</p></div>
+      <div class="feat-card reveal"><div class="feat-icon ic-p">🤖</div><h3>Multi-Model Forecasting</h3><p>XGBoost, Random Forest, Gradient Boosting, Ridge &amp; Linear Regression with walk-forward cross-validation and baseline comparison.</p></div>
+      <div class="feat-card reveal"><div class="feat-icon ic-g">📊</div><h3>Interactive Dashboard</h3><p>Streamlit multi-page app with live charts, stock explorer, model leaderboard, forecast centre and data quality monitoring.</p></div>
+      <div class="feat-card reveal"><div class="feat-icon ic-o">⚡</div><h3>REST API</h3><p>FastAPI with 8 endpoints for stock history, technical indicators, risk analytics, ML predictions, and pipeline triggers. Swagger UI included.</p></div>
+      <div class="feat-card reveal"><div class="feat-icon ic-pk">🧪</div><h3>MLflow Experiment Tracking</h3><p>Every training run is logged with metrics, parameters, and artefacts. Compare runs, track model evolution and reproduce results.</p></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- Pipeline -->
+<section id="pipeline">
+  <div class="container">
+    <div class="reveal">
+      <div class="sec-label">Architecture</div>
+      <h2 class="sec-title">End-to-end ML pipeline</h2>
+      <p class="sec-sub">Single orchestrated flow from raw market data to dashboard insights.</p>
+    </div>
+    <div class="pipe-wrap reveal">
+      <div class="pipe-step"><div class="ps-icon">🌐</div><h4>Data Ingestion</h4><p>yfinance API, retry logic, incremental loading</p></div>
+      <div class="pipe-arrow">&#8594;</div>
+      <div class="pipe-step"><div class="ps-icon">🧹</div><h4>Validate &amp; Clean</h4><p>OHLC integrity, null fill, deduplication</p></div>
+      <div class="pipe-arrow">&#8594;</div>
+      <div class="pipe-step"><div class="ps-icon">⚙️</div><h4>Feature Engineering</h4><p>50+ indicators, lag features, targets</p></div>
+      <div class="pipe-arrow">&#8594;</div>
+      <div class="pipe-step"><div class="ps-icon">🏋️</div><h4>Model Training</h4><p>Walk-forward CV, MLflow tracking</p></div>
+      <div class="pipe-arrow">&#8594;</div>
+      <div class="pipe-step"><div class="ps-icon">🔮</div><h4>Predictions</h4><p>1-day &amp; 5-day return / direction</p></div>
+      <div class="pipe-arrow">&#8594;</div>
+      <div class="pipe-step"><div class="ps-icon">📊</div><h4>Dashboard &amp; API</h4><p>Streamlit + FastAPI serving</p></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- Models -->
+<section id="models">
+  <div class="container">
+    <div class="reveal">
+      <div class="sec-label">Machine Learning</div>
+      <h2 class="sec-title">9 model types &middot; 2 horizons &middot; 2 tasks<br/>164 trained models total</h2>
+      <p class="sec-sub">Regression for return magnitude, classification for direction. Both 1-day and 5-day horizons across the full stock universe.</p>
+    </div>
+    <div class="model-grid reveal">
+      <div class="model-card"><div class="ml"><h4>XGBoost Regressor</h4><p>Gradient boosting &mdash; return magnitude</p></div><span class="mbadge mb-best">Best</span></div>
+      <div class="model-card"><div class="ml"><h4>Random Forest</h4><p>Ensemble of decision trees</p></div><span class="mbadge mb-reg">Regression</span></div>
+      <div class="model-card"><div class="ml"><h4>Gradient Boosting</h4><p>Sklearn GBM implementation</p></div><span class="mbadge mb-reg">Regression</span></div>
+      <div class="model-card"><div class="ml"><h4>Ridge Regression</h4><p>L2-regularized linear model</p></div><span class="mbadge mb-reg">Regression</span></div>
+      <div class="model-card"><div class="ml"><h4>Linear Regression</h4><p>OLS baseline comparison</p></div><span class="mbadge mb-reg">Regression</span></div>
+      <div class="model-card"><div class="ml"><h4>Logistic Regression</h4><p>Direction classification</p></div><span class="mbadge mb-clf">Classification</span></div>
+      <div class="model-card"><div class="ml"><h4>Decision Tree</h4><p>Interpretable tree classifier</p></div><span class="mbadge mb-clf">Classification</span></div>
+      <div class="model-card"><div class="ml"><h4>RF Classifier</h4><p>Ensemble direction classifier</p></div><span class="mbadge mb-clf">Classification</span></div>
+      <div class="model-card"><div class="ml"><h4>XGBoost Classifier</h4><p>Best direction classifier</p></div><span class="mbadge mb-best">Best</span></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- Tech Stack -->
+<section id="stack">
+  <div class="container">
+    <div class="reveal">
+      <div class="sec-label">Technology Stack</div>
+      <h2 class="sec-title">Built with production-ready tools</h2>
+      <p class="sec-sub">Modern Python data science and web stack. Containerized with Docker for one-command deployment.</p>
+    </div>
+    <div class="tech-grid reveal">
+      <div class="tech-chip"><span class="tc-dot" style="background:#3776ab"></span>Python 3.10</div>
+      <div class="tech-chip"><span class="tc-dot" style="background:#e70000"></span>FastAPI</div>
+      <div class="tech-chip"><span class="tc-dot" style="background:#ff4b4b"></span>Streamlit</div>
+      <div class="tech-chip"><span class="tc-dot" style="background:#336791"></span>PostgreSQL</div>
+      <div class="tech-chip"><span class="tc-dot" style="background:#3ecf8e"></span>Supabase</div>
+      <div class="tech-chip"><span class="tc-dot" style="background:#f7931e"></span>XGBoost</div>
+      <div class="tech-chip"><span class="tc-dot" style="background:#f89820"></span>Scikit-learn</div>
+      <div class="tech-chip"><span class="tc-dot" style="background:#3f4f75"></span>SQLAlchemy</div>
+      <div class="tech-chip"><span class="tc-dot" style="background:#00acee"></span>Pandas</div>
+      <div class="tech-chip"><span class="tc-dot" style="background:#4dabf7"></span>NumPy</div>
+      <div class="tech-chip"><span class="tc-dot" style="background:#636efa"></span>Plotly</div>
+      <div class="tech-chip"><span class="tc-dot" style="background:#0194e2"></span>MLflow</div>
+      <div class="tech-chip"><span class="tc-dot" style="background:#099cec"></span>yfinance</div>
+      <div class="tech-chip"><span class="tc-dot" style="background:#2496ed"></span>Docker</div>
+      <div class="tech-chip"><span class="tc-dot" style="background:#6e40c9"></span>Pytest</div>
+      <div class="tech-chip"><span class="tc-dot" style="background:#f05032"></span>Git</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- Stock Universe -->
+<section id="stocks">
+  <div class="container">
+    <div class="reveal">
+      <div class="sec-label">Stock Universe</div>
+      <h2 class="sec-title">NIFTY 50 &mdash; 10 large-cap stocks</h2>
+      <p class="sec-sub">Covering 4 sectors: IT, Banking, Energy &amp; Automobile. Daily OHLCV data from January 2019 to present.</p>
+    </div>
+    <div class="stocks-grid reveal">
+      <div class="stock-chip"><div class="sc-sym">TCS.NS</div><div class="sc-name">Tata Consultancy Services</div><div class="sc-sec">🖥 Information Technology</div></div>
+      <div class="stock-chip"><div class="sc-sym">INFY.NS</div><div class="sc-name">Infosys Limited</div><div class="sc-sec">🖥 Information Technology</div></div>
+      <div class="stock-chip"><div class="sc-sym">WIPRO.NS</div><div class="sc-name">Wipro Limited</div><div class="sc-sec">🖥 Information Technology</div></div>
+      <div class="stock-chip"><div class="sc-sym">HDFCBANK.NS</div><div class="sc-name">HDFC Bank Limited</div><div class="sc-sec">🏦 Banking</div></div>
+      <div class="stock-chip"><div class="sc-sym">ICICIBANK.NS</div><div class="sc-name">ICICI Bank Limited</div><div class="sc-sec">🏦 Banking</div></div>
+      <div class="stock-chip"><div class="sc-sym">SBIN.NS</div><div class="sc-name">State Bank of India</div><div class="sc-sec">🏦 Banking</div></div>
+      <div class="stock-chip"><div class="sc-sym">RELIANCE.NS</div><div class="sc-name">Reliance Industries</div><div class="sc-sec">⚡ Energy</div></div>
+      <div class="stock-chip"><div class="sc-sym">ONGC.NS</div><div class="sc-name">Oil &amp; Natural Gas Corp</div><div class="sc-sec">⚡ Energy</div></div>
+      <div class="stock-chip"><div class="sc-sym">MARUTI.NS</div><div class="sc-name">Maruti Suzuki India</div><div class="sc-sec">🚗 Automobile</div></div>
+      <div class="stock-chip"><div class="sc-sym">TATAMOTORS.NS</div><div class="sc-name">Tata Motors Limited</div><div class="sc-sec">🚗 Automobile</div></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- CTA -->
+<section>
+  <div class="container">
+    <div class="cta-banner reveal">
+      <h2>Ready to explore<br/><span class="grad-text">the markets?</span></h2>
+      <p>Launch the interactive Streamlit dashboard or call the REST API to start analyzing NIFTY 50 stocks with ML-powered insights.</p>
+      <div class="cta-actions">
+        <a href="http://localhost:8501" class="btn-primary">📊 Open Dashboard</a>
+        <a href="http://localhost:8000/docs" class="btn-secondary">⚡ Swagger API Docs</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="container">
+    <div class="footer-inner">
+      <div class="footer-brand"><div class="footer-badge">📈</div>StockVision AI</div>
+      <div class="footer-links">
+        <a href="#features">Features</a>
+        <a href="#pipeline">Pipeline</a>
+        <a href="#models">Models</a>
+        <a href="http://localhost:8000/docs">API</a>
+        <a href="https://github.com/Venkateshnandupalli/Stock-Vision-AI" target="_blank" rel="noopener">GitHub</a>
+      </div>
+    </div>
+    <div class="footer-disclaimer">
+      ⚠️ All forecasts are generated from historical data for educational and analytical purposes only.
+      They do not constitute investment advice. Past patterns may not predict future performance.
+    </div>
+  </div>
+</footer>
+
+<script>
+// Particles
+const pts = document.getElementById('pts');
+for(let i=0;i<35;i++){
+  const p=document.createElement('div');p.className='particle';
+  p.style.cssText=`left:${Math.random()*100}%;width:${Math.random()*2+1}px;height:${Math.random()*2+1}px;animation-delay:${Math.random()*15}s;animation-duration:${12+Math.random()*15}s;background:${Math.random()>.5?'#00c2ff':'#00e5c8'};`;
+  pts.appendChild(p);
+}
+
+// Nav scroll
+window.addEventListener('scroll',()=>document.getElementById('nav').classList.toggle('scrolled',scrollY>40));
+
+// Ticker
+const tks=[
+  {s:'TCS.NS',p:'₹3,842',c:'+1.84%',u:true},{s:'INFY.NS',p:'₹1,612',c:'+0.92%',u:true},
+  {s:'WIPRO.NS',p:'₹548',c:'-0.31%',u:false},{s:'HDFCBANK.NS',p:'₹1,834',c:'+1.12%',u:true},
+  {s:'ICICIBANK.NS',p:'₹1,289',c:'+0.67%',u:true},{s:'SBIN.NS',p:'₹842',c:'-0.45%',u:false},
+  {s:'RELIANCE.NS',p:'₹2,967',c:'+0.38%',u:true},{s:'ONGC.NS',p:'₹271',c:'+2.14%',u:true},
+  {s:'MARUTI.NS',p:'₹12,405',c:'-0.78%',u:false},{s:'TATAMOTORS.NS',p:'₹1,043',c:'+1.55%',u:true},
+  {s:'^NSEI',p:'24,502',c:'+0.73%',u:true}
+];
+const tt=document.getElementById('tt');
+const row=tks.map(t=>`<div class="ticker-item"><span class="t-sym">${t.s}</span><span class="t-px">${t.p}</span><span class="t-chg ${t.u?'up':'dn'}">${t.c}</span><span class="t-sep">|</span></div>`).join('');
+tt.innerHTML=row+row;
+
+// Counters
+function countUp(el,target,dur=1800){
+  let s=null;
+  const step=ts=>{if(!s)s=ts;const pct=Math.min((ts-s)/dur,1);const e=1-Math.pow(1-pct,3);
+  el.textContent=Math.floor(e*target).toLocaleString();if(pct<1)requestAnimationFrame(step);else el.textContent=target.toLocaleString();};
+  requestAnimationFrame(step);
+}
+
+// Reveal observer
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      e.target.classList.add('visible');
+      if(e.target.id==='sb')e.target.querySelectorAll('[data-target]').forEach(n=>countUp(n,parseInt(n.dataset.target)));
+      obs.unobserve(e.target);
+    }
+  });
+},{threshold:0.15});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+
+// Live price animation
+const prices=['₹3,842.50','₹3,845.30','₹3,838.80','₹3,851.00','₹3,847.60'];
+const deltas=['▲ +1.84% today','▲ +1.91% today','▲ +1.72% today','▲ +2.05% today','▲ +1.96% today'];
+let pi=0;
+const hpEl=document.getElementById('hp'),hdEl=document.getElementById('hd');
+hpEl.style.transition=hdEl.style.transition='opacity .2s';
+setInterval(()=>{
+  pi=(pi+1)%prices.length;hpEl.style.opacity=hdEl.style.opacity='0';
+  setTimeout(()=>{hpEl.textContent=prices[pi];hdEl.textContent=deltas[pi];hpEl.style.opacity=hdEl.style.opacity='1';},200);
+},3000);
+</script>
+</body>
+</html>
