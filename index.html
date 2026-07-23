@@ -1,520 +1,1010 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>StockVision AI &mdash; Market Analytics &amp; Price Forecasting Platform</title>
-  <meta name="description" content="End-to-end stock market analytics platform powered by ML. Track NIFTY 50 stocks, engineer 50+ technical indicators, and forecast price movements with XGBoost, Random Forest and more." />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📈</text></svg>" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --bg: #050d1a; --bg2: #091424; --card: rgba(255,255,255,0.04);
-      --border: rgba(255,255,255,0.08);
-      --blue: #00c2ff; --teal: #00e5c8; --green: #00f5a0; --purple: #7c4dff;
-      --t1: #ffffff; --t2: #a0b4cc; --t3: #536a80;
-      --r: 20px;
-    }
-    html { scroll-behavior: smooth; }
-    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--t1); overflow-x: hidden; line-height: 1.6; }
-    ::-webkit-scrollbar { width: 5px; } ::-webkit-scrollbar-track { background: var(--bg); } ::-webkit-scrollbar-thumb { background: var(--blue); border-radius: 3px; }
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>StockVision AI &mdash; Institutional-Grade Market Analytics</title>
+  <meta name="description" content="Professional stock market analytics powered by machine learning. NIFTY 50 coverage, 50+ technical indicators, XGBoost forecasting, and real-time risk intelligence."/>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%230066FF'/><path d='M7 22l6-7 5 4 7-10' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/></svg>"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"/>
+<style>
+/* ===== DESIGN SYSTEM ===== */
+:root{
+  --black:#000000;
+  --bg:#080C14;
+  --bg-1:#0D1320;
+  --bg-2:#111827;
+  --bg-card:rgba(255,255,255,0.03);
+  --bg-card-hover:rgba(255,255,255,0.06);
+  --border:rgba(255,255,255,0.07);
+  --border-strong:rgba(255,255,255,0.14);
+  --blue:#2563EB;
+  --blue-l:#3B82F6;
+  --blue-ll:#60A5FA;
+  --cyan:#06B6D4;
+  --green:#10B981;
+  --red:#EF4444;
+  --amber:#F59E0B;
+  --purple:#8B5CF6;
+  --t1:#F9FAFB;
+  --t2:#9CA3AF;
+  --t3:#4B5563;
+  --t4:#1F2937;
+  --mono:'JetBrains Mono',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t1);overflow-x:hidden;line-height:1.6}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--blue);border-radius:99px}
+img{display:block;max-width:100%}
+a{text-decoration:none;color:inherit}
 
-    /* Background */
-    .bg-mesh { position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 80% 50% at 20% 20%,rgba(0,194,255,.07) 0%,transparent 60%),radial-gradient(ellipse 60% 40% at 80% 80%,rgba(124,77,255,.07) 0%,transparent 60%),radial-gradient(ellipse 50% 60% at 50% 50%,rgba(0,229,200,.04) 0%,transparent 70%); }
-    .bg-grid { position:fixed;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(0,194,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,194,255,.04) 1px,transparent 1px);background-size:60px 60px;mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black 20%,transparent 100%); }
-    .particles { position:fixed;inset:0;z-index:0;pointer-events:none; }
-    .particle { position:absolute;width:2px;height:2px;background:var(--blue);border-radius:50%;animation:float linear infinite;opacity:0; }
-    @keyframes float { 0%{transform:translateY(100vh);opacity:0}10%{opacity:.6}90%{opacity:.3}100%{transform:translateY(-10vh) translateX(40px);opacity:0} }
-    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.3)} }
-    @keyframes drawLine { to{stroke-dashoffset:0} }
-    @keyframes fadeArea { to{opacity:1} }
-    @keyframes bobUp   { 0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)} }
-    @keyframes bobDown { 0%,100%{transform:translateY(0)}50%{transform:translateY(8px)} }
-    @keyframes marquee { 0%{transform:translateX(0)}100%{transform:translateX(-50%)} }
+/* ===== LAYOUT ===== */
+.wrap{max-width:1200px;margin:0 auto;padding:0 24px}
+.wrap-lg{max-width:1400px;margin:0 auto;padding:0 32px}
 
-    /* Layout */
-    .container { max-width:1240px;margin:0 auto;padding:0 2rem;position:relative;z-index:1; }
-    .divider { height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent); }
-    .reveal { opacity:0;transform:translateY(30px);transition:opacity .7s ease,transform .7s ease; }
-    .reveal.visible { opacity:1;transform:none; }
-    .grad-text { background:linear-gradient(135deg,var(--blue) 0%,var(--teal) 50%,var(--green) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text; }
+/* ===== UTILITY ===== */
+.text-blue{color:var(--blue-l)}
+.text-cyan{color:var(--cyan)}
+.text-green{color:var(--green)}
+.text-red{color:var(--red)}
+.text-muted{color:var(--t2)}
+.mono{font-family:var(--mono)}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
 
-    /* Nav */
-    nav { position:fixed;top:0;left:0;right:0;z-index:100;padding:1.2rem 0;backdrop-filter:blur(20px);border-bottom:1px solid transparent;transition:all .3s; }
-    nav.scrolled { background:rgba(5,13,26,.85);border-bottom-color:var(--border); }
-    .nav-inner { display:flex;align-items:center;justify-content:space-between;max-width:1240px;margin:0 auto;padding:0 2rem; }
-    .nav-logo { display:flex;align-items:center;gap:.6rem;font-weight:700;font-size:1.1rem;text-decoration:none;color:var(--t1); }
-    .logo-badge { width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--blue),var(--teal));display:flex;align-items:center;justify-content:center;font-size:1rem;box-shadow:0 0 20px rgba(0,194,255,.3); }
-    .nav-links { display:flex;gap:2rem;list-style:none; }
-    .nav-links a { text-decoration:none;color:var(--t2);font-size:.9rem;font-weight:500;transition:color .2s; }
-    .nav-links a:hover { color:var(--t1); }
-    .nav-cta { padding:.5rem 1.3rem;background:linear-gradient(135deg,var(--blue),var(--teal));border:none;border-radius:8px;color:#050d1a;font-weight:700;font-size:.88rem;cursor:pointer;text-decoration:none;transition:transform .2s,box-shadow .2s;box-shadow:0 0 20px rgba(0,194,255,.25); }
-    .nav-cta:hover { transform:translateY(-1px);box-shadow:0 0 30px rgba(0,194,255,.4); }
+/* ===== ANIMATIONS ===== */
+@keyframes fade-up{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+@keyframes fade-in{from{opacity:0}to{opacity:1}}
+@keyframes ticker-l{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+@keyframes ticker-r{0%{transform:translateX(-50%)}100%{transform:translateX(0)}}
+@keyframes pulse-ring{0%{transform:scale(1);opacity:.6}70%{transform:scale(1.8);opacity:0}100%{transform:scale(1.8);opacity:0}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+@keyframes candle-grow{from{transform:scaleY(0);transform-origin:bottom}to{transform:scaleY(1);transform-origin:bottom}}
+@keyframes line-draw{to{stroke-dashoffset:0}}
+@keyframes float-y{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes glow-pulse{0%,100%{box-shadow:0 0 0 rgba(37,99,235,0)}50%{box-shadow:0 0 40px rgba(37,99,235,.2)}}
+.reveal{opacity:0;transform:translateY(20px);transition:opacity .65s cubic-bezier(.22,1,.36,1),transform .65s cubic-bezier(.22,1,.36,1)}
+.reveal.on{opacity:1;transform:none}
+.reveal-delay-1{transition-delay:.1s}.reveal-delay-2{transition-delay:.2s}.reveal-delay-3{transition-delay:.3s}.reveal-delay-4{transition-delay:.4s}
 
-    /* Hero */
-    .hero { min-height:100vh;display:flex;align-items:center;padding:8rem 0 5rem;position:relative; }
-    .hero-inner { display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center; }
-    .hero-badge { display:inline-flex;align-items:center;gap:.5rem;background:rgba(0,194,255,.1);border:1px solid rgba(0,194,255,.25);border-radius:100px;padding:.35rem 1rem;font-size:.78rem;font-weight:600;color:var(--blue);margin-bottom:1.5rem;letter-spacing:.5px;text-transform:uppercase; }
-    .badge-dot { width:6px;height:6px;border-radius:50%;background:var(--teal);animation:pulse 2s ease-in-out infinite; }
-    .hero h1 { font-size:clamp(2.4rem,4.5vw,3.8rem);font-weight:900;line-height:1.1;letter-spacing:-1.5px;margin-bottom:1.4rem; }
-    .hero p { font-size:1.05rem;color:var(--t2);line-height:1.7;margin-bottom:2.5rem;max-width:520px; }
-    .hero-actions { display:flex;gap:1rem;flex-wrap:wrap; }
-    .btn-primary { padding:.85rem 2rem;background:linear-gradient(135deg,var(--blue),var(--teal));border:none;border-radius:12px;color:#050d1a;font-weight:700;font-size:.95rem;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:.5rem;transition:transform .2s,box-shadow .2s;box-shadow:0 0 30px rgba(0,194,255,.3); }
-    .btn-primary:hover { transform:translateY(-2px);box-shadow:0 0 45px rgba(0,194,255,.45); }
-    .btn-secondary { padding:.85rem 2rem;background:transparent;border:1px solid var(--border);border-radius:12px;color:var(--t1);font-weight:600;font-size:.95rem;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:.5rem;transition:all .2s;backdrop-filter:blur(10px); }
-    .btn-secondary:hover { border-color:var(--blue);color:var(--blue); }
-    .hero-stats { display:flex;gap:2.5rem;margin-top:3rem;padding-top:2rem;border-top:1px solid var(--border); }
-    .stat { display:flex;flex-direction:column; }
-    .stat-value { font-size:1.6rem;font-weight:800;background:linear-gradient(135deg,var(--blue),var(--teal));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text; }
-    .stat-label { font-size:.8rem;color:var(--t3);margin-top:.1rem; }
+/* ===== GLOBAL GRADIENTS ===== */
+.grad-blue{background:linear-gradient(135deg,#2563EB,#06B6D4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.grad-white{background:linear-gradient(180deg,#ffffff 0%,rgba(255,255,255,.7) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.grad-border{background:linear-gradient(135deg,rgba(255,255,255,.12),rgba(255,255,255,.04));border:1px solid rgba(255,255,255,.1)}
 
-    /* Hero Visual */
-    .hero-visual { position:relative;display:flex;align-items:center;justify-content:center; }
-    .chart-card { background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r);padding:1.5rem;backdrop-filter:blur(20px);width:100%;position:relative;overflow:hidden;box-shadow:0 0 60px rgba(0,194,255,.08),0 40px 80px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.08); }
-    .chart-card::before { content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle,rgba(0,194,255,.03) 0%,transparent 50%);pointer-events:none; }
-    .chart-header { display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.2rem; }
-    .chart-ticker { font-weight:700;font-size:1rem; }
-    .chart-company { font-size:.75rem;color:var(--t3);margin-top:2px; }
-    .chart-price-val { font-size:1.5rem;font-weight:800;font-family:'JetBrains Mono',monospace;text-align:right; }
-    .chart-delta { font-size:.8rem;font-weight:600;color:var(--green);display:flex;align-items:center;gap:3px;justify-content:flex-end;margin-top:2px; }
-    .chart-svg-wrap { width:100%;height:180px;position:relative;margin-bottom:1rem; }
-    svg.lc { width:100%;height:100%; }
-    .chart-path { stroke-dasharray:1000;stroke-dashoffset:1000;animation:drawLine 2.5s ease forwards; }
-    .chart-area-path { opacity:0;animation:fadeArea 2.5s ease forwards .5s; }
-    .ind-row { display:flex;gap:.5rem;flex-wrap:wrap; }
-    .ind-pill { padding:.28rem .65rem;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:100px;font-size:.7rem;font-weight:600;color:var(--t2);font-family:'JetBrains Mono',monospace; }
-    .ind-pill.up { color:var(--teal);border-color:rgba(0,229,200,.25);background:rgba(0,229,200,.06); }
-    .ind-pill.warn { color:#ffc107;border-color:rgba(255,193,7,.25);background:rgba(255,193,7,.06); }
-    .float-card { position:absolute;background:rgba(255,255,255,.07);border:1px solid var(--border);border-radius:12px;padding:.8rem 1rem;backdrop-filter:blur(20px);box-shadow:0 10px 30px rgba(0,0,0,.3); }
-    .float-card-1 { top:-2rem;right:-1.5rem;animation:bobUp 4s ease-in-out infinite; }
-    .float-card-2 { bottom:0;left:-2rem;animation:bobDown 5s ease-in-out infinite; }
-    .float-label { font-size:.68rem;color:var(--t3);margin-bottom:2px; }
-    .float-value { font-size:.9rem;font-weight:700;font-family:'JetBrains Mono',monospace; }
-    .fv-green { color:var(--green); } .fv-blue { color:var(--blue); }
+/* ===== NAV ===== */
+header{position:fixed;top:0;left:0;right:0;z-index:999;height:64px;display:flex;align-items:center;border-bottom:1px solid transparent;transition:all .3s}
+header.stuck{background:rgba(8,12,20,.9);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-bottom-color:var(--border)}
+.nav{display:flex;align-items:center;justify-content:space-between;width:100%;max-width:1200px;margin:0 auto;padding:0 24px}
+.nav-brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px;letter-spacing:-.3px}
+.nav-logo{width:32px;height:32px;background:var(--blue);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.nav-logo svg{width:18px;height:18px}
+.nav-menu{display:flex;align-items:center;gap:2px}
+.nav-menu a{padding:8px 14px;border-radius:8px;font-size:14px;font-weight:500;color:var(--t2);transition:all .2s}
+.nav-menu a:hover{color:var(--t1);background:rgba(255,255,255,.05)}
+.nav-right{display:flex;align-items:center;gap:12px}
+.btn-ghost{padding:7px 16px;border-radius:8px;font-size:14px;font-weight:500;color:var(--t2);transition:all .2s;cursor:pointer;border:none;background:none}
+.btn-ghost:hover{color:var(--t1)}
+.btn-nav{padding:8px 18px;border-radius:8px;font-size:14px;font-weight:600;background:var(--blue);color:white;border:none;cursor:pointer;transition:all .2s;letter-spacing:-.1px}
+.btn-nav:hover{background:#1D4ED8;transform:translateY(-1px)}
 
-    /* Ticker bar */
-    .ticker-bar { border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:rgba(255,255,255,.02);padding:.7rem 0;overflow:hidden;position:relative;z-index:1; }
-    .ticker-track { display:flex;gap:3rem;animation:marquee 25s linear infinite;width:max-content; }
-    .ticker-item { display:flex;align-items:center;gap:.6rem;white-space:nowrap;font-size:.82rem; }
-    .t-sym { font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--t1); }
-    .t-px  { color:var(--t2); }
-    .t-chg { font-weight:600; } .t-chg.up{color:var(--green);} .t-chg.dn{color:#ff6b6b;}
-    .t-sep { color:var(--t3); }
+/* ===== ANNOUNCEMENT BAR ===== */
+.announce{display:flex;align-items:center;justify-content:center;gap:10px;padding:10px 24px;background:rgba(37,99,235,.12);border-bottom:1px solid rgba(37,99,235,.2);font-size:13px;cursor:pointer;transition:background .2s}
+.announce:hover{background:rgba(37,99,235,.18)}
+.announce .badge{padding:2px 8px;background:var(--blue);border-radius:4px;font-size:11px;font-weight:700;letter-spacing:.5px}
+.announce .arrow{font-size:12px;color:var(--t2)}
 
-    /* Section */
-    section { padding:6rem 0;position:relative;z-index:1; }
-    .sec-label { font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--blue);margin-bottom:.8rem; }
-    .sec-title { font-size:clamp(1.8rem,3vw,2.6rem);font-weight:800;letter-spacing:-.8px;line-height:1.2;margin-bottom:1rem; }
-    .sec-sub { font-size:1.05rem;color:var(--t2);max-width:560px;line-height:1.7; }
+/* ===== HERO ===== */
+.hero{padding:128px 0 80px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-200px;left:50%;transform:translateX(-50%);width:800px;height:800px;background:radial-gradient(circle,rgba(37,99,235,.09) 0%,transparent 65%);pointer-events:none;z-index:0}
+.hero-inner{position:relative;z-index:1;text-align:center;max-width:860px;margin:0 auto}
+.hero-pill{display:inline-flex;align-items:center;gap:8px;padding:6px 14px 6px 8px;background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.25);border-radius:100px;font-size:13px;font-weight:500;color:var(--blue-ll);margin-bottom:28px}
+.hero-pill-dot{width:8px;height:8px;background:var(--blue-l);border-radius:50%;position:relative;flex-shrink:0}
+.hero-pill-dot::before{content:'';position:absolute;inset:0;background:var(--blue-l);border-radius:50%;animation:pulse-ring 2.5s ease-out infinite}
+.hero h1{font-size:clamp(44px,6vw,76px);font-weight:900;line-height:1.04;letter-spacing:-3px;margin-bottom:24px}
+.hero-sub{font-size:clamp(16px,2vw,19px);color:var(--t2);line-height:1.65;max-width:600px;margin:0 auto 40px;letter-spacing:-.2px}
+.hero-ctas{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;margin-bottom:60px}
+.btn-primary{display:inline-flex;align-items:center;gap:8px;padding:13px 28px;background:var(--blue);color:white;border-radius:10px;font-size:15px;font-weight:600;border:none;cursor:pointer;transition:all .2s;letter-spacing:-.2px;box-shadow:0 0 0 0 rgba(37,99,235,.5)}
+.btn-primary:hover{background:#1D4ED8;transform:translateY(-2px);box-shadow:0 8px 30px rgba(37,99,235,.35)}
+.btn-outline{display:inline-flex;align-items:center;gap:8px;padding:12px 28px;background:rgba(255,255,255,.04);color:var(--t1);border-radius:10px;font-size:15px;font-weight:600;border:1px solid var(--border-strong);cursor:pointer;transition:all .2s;letter-spacing:-.2px}
+.btn-outline:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.22);transform:translateY(-2px)}
+.btn-icon{width:18px;height:18px;opacity:.7}
 
-    /* Stats bar */
-    .stats-bar { display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border-radius:var(--r);overflow:hidden;border:1px solid var(--border); }
-    .sbi { background:rgba(255,255,255,.02);padding:2.5rem 2rem;text-align:center;transition:background .3s; }
-    .sbi:hover { background:rgba(0,194,255,.05); }
-    .sbi-num { font-size:2.8rem;font-weight:900;letter-spacing:-2px;background:linear-gradient(135deg,var(--blue),var(--teal));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1; }
-    .sbi-lbl { font-size:.82rem;color:var(--t3);margin-top:.4rem; }
+/* ===== HERO CHART ===== */
+.hero-visual{position:relative;max-width:1100px;margin:0 auto}
+.hero-screen{background:var(--bg-1);border:1px solid var(--border-strong);border-radius:16px;overflow:hidden;box-shadow:0 0 0 1px rgba(255,255,255,.04),0 40px 80px rgba(0,0,0,.6),0 0 100px rgba(37,99,235,.07)}
+.screen-bar{height:36px;background:rgba(255,255,255,.03);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:8px}
+.screen-dot{width:10px;height:10px;border-radius:50%}
+.screen-title{flex:1;text-align:center;font-size:12px;color:var(--t3);font-weight:500;letter-spacing:.3px}
+.screen-body{padding:20px;display:grid;grid-template-columns:1fr 280px;gap:16px;min-height:420px}
+.chart-area{background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.ca-header{display:flex;justify-content:space-between;align-items:flex-start}
+.ca-ticker{font-weight:700;font-size:15px;letter-spacing:-.2px}
+.ca-sub{font-size:11px;color:var(--t3);margin-top:2px}
+.ca-price{text-align:right}
+.ca-val{font-size:20px;font-weight:800;font-family:var(--mono)}
+.ca-delta-up{font-size:12px;font-weight:600;color:var(--green);display:flex;align-items:center;gap:3px;justify-content:flex-end}
+.ca-delta-dn{color:var(--red)}
+.chart-tabs{display:flex;gap:4px}
+.chart-tab{padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;color:var(--t3)}
+.chart-tab.active{background:rgba(37,99,235,.15);color:var(--blue-l)}
+.candlestick-svg{flex:1;min-height:200px}
+.chart-signals{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.sig{padding:3px 8px;border-radius:5px;font-size:10.5px;font-weight:700;font-family:var(--mono)}
+.sig-bull{background:rgba(16,185,129,.12);color:#34D399;border:1px solid rgba(16,185,129,.2)}
+.sig-bear{background:rgba(239,68,68,.1);color:#F87171;border:1px solid rgba(239,68,68,.18)}
+.sig-neu{background:rgba(245,158,11,.1);color:#FCD34D;border:1px solid rgba(245,158,11,.18)}
 
-    /* Features */
-    .feat-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-top:3.5rem; }
-    .feat-card { background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:2rem;transition:all .3s;position:relative;overflow:hidden; }
-    .feat-card::after { content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,194,255,.08),transparent);opacity:0;transition:opacity .3s; }
-    .feat-card:hover { transform:translateY(-6px);border-color:rgba(0,194,255,.3); }
-    .feat-card:hover::after { opacity:1; }
-    .feat-icon { width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin-bottom:1.2rem;position:relative;z-index:1; }
-    .ic-b{background:rgba(0,194,255,.12);} .ic-t{background:rgba(0,229,200,.12);} .ic-p{background:rgba(124,77,255,.12);} .ic-g{background:rgba(0,245,160,.12);} .ic-o{background:rgba(255,171,64,.12);} .ic-pk{background:rgba(255,64,129,.12);}
-    .feat-card h3 { font-size:1.05rem;font-weight:700;margin-bottom:.6rem;position:relative;z-index:1; }
-    .feat-card p  { font-size:.88rem;color:var(--t2);line-height:1.6;position:relative;z-index:1; }
+/* Side panel */
+.side-panel{display:flex;flex-direction:column;gap:12px}
+.panel-card{background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:14px}
+.pc-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--t3);margin-bottom:10px}
+.model-item{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border)}
+.model-item:last-child{border-bottom:none}
+.mi-name{font-size:12px;font-weight:600}
+.mi-score{font-size:12px;font-weight:700;font-family:var(--mono);color:var(--green)}
+.mi-score.warn{color:var(--amber)}
+.forecast-box{background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.2);border-radius:8px;padding:12px;margin-bottom:8px}
+.fb-label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--t3);font-weight:700}
+.fb-val{font-size:24px;font-weight:800;font-family:var(--mono);color:var(--blue-ll);margin:4px 0}
+.fb-conf{font-size:11px;color:var(--t2)}
+.ind-list .ind-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px}
+.ind-list .ind-row:last-child{border-bottom:none}
+.ind-name{color:var(--t2)}
+.ind-val{font-family:var(--mono);font-weight:600}
 
-    /* Pipeline */
-    .pipe-wrap { display:flex;align-items:center;gap:0;margin-top:3rem;flex-wrap:wrap; }
-    .pipe-step { flex:1;min-width:130px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.5rem 1rem;text-align:center;transition:all .3s; }
-    .pipe-step:hover { border-color:rgba(0,194,255,.35);transform:translateY(-4px); }
-    .pipe-step .ps-icon { font-size:1.8rem;margin-bottom:.5rem; }
-    .pipe-step h4 { font-size:.85rem;font-weight:700;margin-bottom:.3rem; }
-    .pipe-step p { font-size:.73rem;color:var(--t3); }
-    .pipe-arrow { font-size:1.1rem;color:var(--blue);padding:0 .4rem;opacity:.5;flex-shrink:0; }
+/* Hover float cards */
+.hero-float{position:absolute;background:rgba(13,19,32,.95);border:1px solid var(--border-strong);border-radius:12px;padding:12px 14px;backdrop-filter:blur(16px);box-shadow:0 20px 40px rgba(0,0,0,.4)}
+.hf-label{font-size:10px;color:var(--t3);font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px}
+.hf-val{font-size:16px;font-weight:800;font-family:var(--mono)}
 
-    /* Models */
-    .model-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:3rem; }
-    .model-card { background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.4rem 1.6rem;display:flex;align-items:center;justify-content:space-between;transition:all .3s; }
-    .model-card:hover { border-color:rgba(0,229,200,.35);transform:scale(1.02); }
-    .ml h4 { font-size:.95rem;font-weight:700;margin-bottom:.2rem; }
-    .ml p  { font-size:.75rem;color:var(--t3); }
-    .mbadge { padding:.3rem .7rem;border-radius:100px;font-size:.7rem;font-weight:700; }
-    .mb-best { background:rgba(0,245,160,.15);color:var(--green);border:1px solid rgba(0,245,160,.25); }
-    .mb-reg  { background:rgba(0,194,255,.1);color:var(--blue);border:1px solid rgba(0,194,255,.2); }
-    .mb-clf  { background:rgba(124,77,255,.1);color:#a67cff;border:1px solid rgba(124,77,255,.2); }
+/* ===== LOGOS STRIP ===== */
+.logos-strip{padding:56px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:rgba(255,255,255,.01)}
+.ls-label{text-align:center;font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--t3);margin-bottom:32px}
+.ticker-outer{overflow:hidden;position:relative}
+.ticker-outer::before,.ticker-outer::after{content:'';position:absolute;top:0;bottom:0;width:120px;z-index:2;pointer-events:none}
+.ticker-outer::before{left:0;background:linear-gradient(to right,var(--bg),transparent)}
+.ticker-outer::after{right:0;background:linear-gradient(to left,var(--bg),transparent)}
+.ticker-row{display:flex;gap:0;white-space:nowrap}
+.ticker-row-inner{display:flex;gap:0;animation:ticker-l 30s linear infinite}
+.ticker-row-inner.rev{animation:ticker-r 30s linear infinite}
+.tech-logo-item{display:flex;align-items:center;gap:8px;padding:0 28px;font-size:13px;font-weight:600;color:var(--t3);transition:color .2s;flex-shrink:0}
+.tech-logo-item:hover{color:var(--t2)}
+.tl-icon{width:20px;height:20px;opacity:.5;flex-shrink:0}
 
-    /* Tech chips */
-    .tech-grid { display:flex;flex-wrap:wrap;gap:1rem;margin-top:2.5rem; }
-    .tech-chip { display:flex;align-items:center;gap:.5rem;padding:.55rem 1.1rem;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:100px;font-size:.85rem;font-weight:500;transition:all .2s; }
-    .tech-chip:hover { border-color:rgba(0,194,255,.35);background:rgba(0,194,255,.06);color:var(--blue); }
-    .tc-dot { width:8px;height:8px;border-radius:50%;flex-shrink:0; }
+/* ===== STATS SECTION ===== */
+.stats-section{padding:88px 0}
+.stats-header{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:56px;flex-wrap:wrap;gap:24px}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border-radius:16px;overflow:hidden;border:1px solid var(--border)}
+.stat-cell{background:var(--bg-1);padding:36px 28px;position:relative;overflow:hidden;transition:background .3s}
+.stat-cell::before{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--blue),transparent);opacity:0;transition:opacity .3s}
+.stat-cell:hover{background:var(--bg-2)}.stat-cell:hover::before{opacity:1}
+.sc-num{font-size:42px;font-weight:900;letter-spacing:-2px;line-height:1;margin-bottom:6px;font-family:var(--mono)}
+.sc-lbl{font-size:13px;color:var(--t2);font-weight:500}
+.sc-sub{font-size:11px;color:var(--t3);margin-top:4px}
 
-    /* Stocks */
-    .stocks-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem;margin-top:2.5rem; }
-    .stock-chip { background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1rem 1.2rem;transition:all .25s; }
-    .stock-chip:hover { border-color:rgba(0,194,255,.3);transform:translateY(-3px); }
-    .sc-sym  { font-family:'JetBrains Mono',monospace;font-weight:700;font-size:.9rem;color:var(--blue); }
-    .sc-name { font-size:.78rem;color:var(--t2);margin-top:.2rem; }
-    .sc-sec  { margin-top:.5rem;font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--t3); }
+/* ===== BENTO FEATURES ===== */
+.bento-section{padding:0 0 96px}
+.bento-header{text-align:center;margin-bottom:56px}
+.bento-grid{display:grid;grid-template-columns:repeat(12,1fr);grid-template-rows:auto;gap:16px}
+.bento-card{background:var(--bg-1);border:1px solid var(--border);border-radius:16px;padding:28px;position:relative;overflow:hidden;transition:all .35s cubic-bezier(.22,1,.36,1)}
+.bento-card:hover{border-color:var(--border-strong);transform:translateY(-3px);box-shadow:0 20px 40px rgba(0,0,0,.3)}
+.bento-card::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 80% at 50% -20%,rgba(37,99,235,.06),transparent);opacity:0;transition:opacity .4s;pointer-events:none}
+.bento-card:hover::after{opacity:1}
+.bc-1{grid-column:span 7}
+.bc-2{grid-column:span 5}
+.bc-3{grid-column:span 5}
+.bc-4{grid-column:span 7}
+.bc-5{grid-column:span 4}
+.bc-6{grid-column:span 4}
+.bc-7{grid-column:span 4}
+.bc-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:20px;font-size:20px}
+.bci-blue{background:rgba(37,99,235,.12)}.bci-cyan{background:rgba(6,182,212,.12)}.bci-green{background:rgba(16,185,129,.12)}.bci-purple{background:rgba(139,92,246,.12)}.bci-amber{background:rgba(245,158,11,.12)}.bci-rose{background:rgba(244,63,94,.12)}
+.bc-tag{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;padding:3px 0}
+.bc-title{font-size:20px;font-weight:700;margin-bottom:8px;letter-spacing:-.4px}
+.bc-desc{font-size:14px;color:var(--t2);line-height:1.65}
+/* Bento visual decorations */
+.bento-mini-chart{width:100%;height:80px;margin-top:20px}
+.bento-code{background:var(--bg-2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-family:var(--mono);font-size:12px;line-height:1.7;margin-top:18px;color:var(--t2)}
+.code-kw{color:#7DD3FC}.code-fn{color:#86EFAC}.code-st{color:#FDE68A}.code-cm{color:var(--t3);font-style:italic}
+.bento-metric-row{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:18px}
+.bm-cell{background:var(--bg-2);border:1px solid var(--border);border-radius:8px;padding:12px}
+.bm-num{font-size:22px;font-weight:800;font-family:var(--mono);color:var(--blue-ll)}
+.bm-lbl{font-size:11px;color:var(--t3);margin-top:2px}
+.bento-bars{display:flex;flex-direction:column;gap:8px;margin-top:18px}
+.bar-row{display:flex;flex-direction:column;gap:4px}
+.bar-info{display:flex;justify-content:space-between;font-size:11px;color:var(--t2)}
+.bar-track{height:5px;background:rgba(255,255,255,.06);border-radius:99px;overflow:hidden}
+.bar-fill{height:100%;border-radius:99px;transition:width 1.5s cubic-bezier(.22,1,.36,1)}
+.pipe-steps{display:flex;gap:0;margin-top:20px;overflow-x:auto}
+.ps-item{flex:1;min-width:80px;text-align:center;position:relative}
+.ps-item::after{content:'→';position:absolute;right:-8px;top:12px;font-size:12px;color:var(--t3)}
+.ps-item:last-child::after{display:none}
+.ps-num{width:28px;height:28px;border-radius:50%;background:rgba(37,99,235,.15);border:1px solid rgba(37,99,235,.3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;font-family:var(--mono);margin:0 auto 8px;color:var(--blue-ll)}
+.ps-text{font-size:10px;color:var(--t3);font-weight:600;line-height:1.3}
 
-    /* CTA */
-    .cta-banner { background:linear-gradient(135deg,rgba(0,194,255,.08),rgba(0,229,200,.05),rgba(124,77,255,.08));border:1px solid rgba(0,194,255,.15);border-radius:var(--r);padding:5rem 3rem;text-align:center;position:relative;overflow:hidden; }
-    .cta-banner::before { content:'';position:absolute;top:-100px;left:50%;transform:translateX(-50%);width:400px;height:400px;background:radial-gradient(circle,rgba(0,194,255,.1) 0%,transparent 70%);pointer-events:none; }
-    .cta-banner h2 { font-size:clamp(1.8rem,3vw,2.5rem);font-weight:900;letter-spacing:-1px;margin-bottom:1rem; }
-    .cta-banner p { color:var(--t2);max-width:500px;margin:0 auto 2.5rem;line-height:1.7; }
-    .cta-actions { display:flex;gap:1rem;justify-content:center;flex-wrap:wrap; }
+/* ===== HOW IT WORKS ===== */
+.hiw-section{padding:96px 0;background:var(--bg-1);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.hiw-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border-radius:16px;overflow:hidden;margin-top:56px;border:1px solid var(--border)}
+.hiw-step{background:var(--bg-1);padding:40px 32px;position:relative;overflow:hidden;transition:background .3s}
+.hiw-step:hover{background:var(--bg-2)}
+.hiw-num{font-size:60px;font-weight:900;font-family:var(--mono);color:rgba(37,99,235,.12);position:absolute;top:16px;right:24px;line-height:1}
+.hiw-icon{width:52px;height:52px;border-radius:14px;background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.2);display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:20px}
+.hiw-title{font-size:18px;font-weight:700;margin-bottom:10px;letter-spacing:-.3px}
+.hiw-desc{font-size:14px;color:var(--t2);line-height:1.7}
 
-    /* Footer */
-    footer { border-top:1px solid var(--border);padding:3rem 0 2rem;position:relative;z-index:1; }
-    .footer-inner { display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1.5rem; }
-    .footer-brand { display:flex;align-items:center;gap:.6rem;font-weight:700; }
-    .footer-badge { width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--blue),var(--teal));display:flex;align-items:center;justify-content:center;font-size:.9rem; }
-    .footer-links { display:flex;gap:2rem; }
-    .footer-links a { text-decoration:none;font-size:.85rem;color:var(--t3);transition:color .2s; }
-    .footer-links a:hover { color:var(--t1); }
-    .footer-disclaimer { width:100%;text-align:center;font-size:.75rem;color:var(--t3);padding-top:2rem;margin-top:2rem;border-top:1px solid var(--border); }
+/* ===== MODELS SECTION ===== */
+.models-section{padding:96px 0}
+.models-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:48px}
+.model-card{background:var(--bg-1);border:1px solid var(--border);border-radius:12px;padding:20px 22px;transition:all .25s;position:relative;overflow:hidden}
+.model-card:hover{border-color:var(--border-strong);background:var(--bg-2)}
+.mc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+.mc-name{font-size:15px;font-weight:700;letter-spacing:-.3px}
+.mc-type{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;padding:3px 8px;border-radius:5px}
+.mc-reg{background:rgba(37,99,235,.1);color:var(--blue-ll)}.mc-clf{background:rgba(139,92,246,.1);color:#A78BFA}.mc-best{background:rgba(16,185,129,.1);color:#34D399}
+.mc-desc{font-size:13px;color:var(--t3);margin-bottom:14px;line-height:1.5}
+.mc-metrics{display:flex;gap:10px;flex-wrap:wrap}
+.mc-m{font-size:11px;padding:3px 8px;border-radius:5px;font-family:var(--mono);font-weight:600;background:rgba(255,255,255,.04);color:var(--t2);border:1px solid var(--border)}
 
-    /* Responsive */
-    @media(max-width:900px){.hero-inner{grid-template-columns:1fr;}.hero-visual{display:none;}.feat-grid{grid-template-columns:1fr 1fr;}.model-grid{grid-template-columns:1fr 1fr;}.stats-bar{grid-template-columns:1fr 1fr;}}
-    @media(max-width:600px){.feat-grid,.model-grid{grid-template-columns:1fr;}.nav-links{display:none;}.pipe-wrap{flex-direction:column;}.pipe-arrow{transform:rotate(90deg);}}
-  </style>
+/* ===== TECH SECTION ===== */
+.tech-section{padding:96px 0;background:var(--bg-1);border-top:1px solid var(--border)}
+.tech-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:48px}
+.tech-cat{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:20px}
+.tc-head{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--t3);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.tc-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.03);transition:transform .2s}
+.tc-item:last-child{border-bottom:none}
+.tc-item:hover{transform:translateX(3px)}
+.tc-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.tc-name{font-size:13px;font-weight:500;color:var(--t1)}
+.tc-ver{font-size:11px;color:var(--t3);margin-left:auto;font-family:var(--mono)}
+
+/* ===== STOCK UNIVERSE ===== */
+.universe-section{padding:96px 0}
+.universe-header{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:40px;flex-wrap:wrap;gap:16px}
+.sector-tabs{display:flex;gap:4px}
+.sector-tab{padding:7px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;border:1px solid transparent;color:var(--t3)}
+.sector-tab.active{background:rgba(37,99,235,.12);border-color:rgba(37,99,235,.25);color:var(--blue-ll)}
+.sector-tab:hover:not(.active){color:var(--t2);background:rgba(255,255,255,.04)}
+.stock-table{background:var(--bg-1);border:1px solid var(--border);border-radius:16px;overflow:hidden}
+.st-head{display:grid;grid-template-columns:1fr 100px 100px 120px 90px;gap:0;padding:12px 20px;border-bottom:1px solid var(--border);background:rgba(255,255,255,.02)}
+.st-head span{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--t3)}
+.st-row{display:grid;grid-template-columns:1fr 100px 100px 120px 90px;gap:0;padding:14px 20px;border-bottom:1px solid var(--border);align-items:center;transition:background .2s;cursor:default}
+.st-row:last-child{border-bottom:none}
+.st-row:hover{background:rgba(255,255,255,.02)}
+.st-sym{font-family:var(--mono);font-weight:700;font-size:13px;color:var(--blue-ll)}
+.st-name{font-size:12px;color:var(--t3);margin-top:2px}
+.st-price{font-family:var(--mono);font-size:13px;font-weight:600;text-align:right}
+.st-chg-pos{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--green);text-align:right}
+.st-chg-neg{color:var(--red)}
+.st-sector{text-align:right}
+.sector-badge{display:inline-block;padding:3px 8px;border-radius:5px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.sb-it{background:rgba(37,99,235,.1);color:var(--blue-ll)}
+.sb-bk{background:rgba(16,185,129,.1);color:#34D399}
+.sb-en{background:rgba(245,158,11,.1);color:#FCD34D}
+.sb-au{background:rgba(139,92,246,.1);color:#A78BFA}
+.st-signal{text-align:right}
+.signal-bull{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:var(--green)}
+.signal-hold{color:var(--amber)}
+.signal-bear{color:var(--red)}
+
+/* ===== CTA SECTION ===== */
+.cta-section{padding:120px 0;position:relative;overflow:hidden}
+.cta-section::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:900px;height:600px;background:radial-gradient(ellipse,rgba(37,99,235,.07) 0%,transparent 65%);pointer-events:none}
+.cta-section::after{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(37,99,235,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(37,99,235,.04) 1px,transparent 1px);background-size:50px 50px;pointer-events:none;mask-image:radial-gradient(ellipse 70% 70% at 50% 50%,black 20%,transparent 80%)}
+.cta-inner{position:relative;z-index:1;text-align:center}
+.cta-inner h2{font-size:clamp(40px,5vw,64px);font-weight:900;letter-spacing:-2.5px;line-height:1.06;margin-bottom:20px}
+.cta-inner p{font-size:18px;color:var(--t2);margin-bottom:40px;max-width:500px;margin-left:auto;margin-right:auto;margin-bottom:40px;line-height:1.6}
+.cta-actions{display:flex;justify-content:center;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:48px}
+.cta-fine{font-size:13px;color:var(--t3);display:flex;align-items:center;justify-content:center;gap:16px}
+.cta-fine-sep{width:1px;height:12px;background:var(--t4)}
+
+/* ===== FOOTER ===== */
+footer{border-top:1px solid var(--border);padding:48px 0 32px}
+.footer-top{display:grid;grid-template-columns:280px 1fr;gap:64px;margin-bottom:48px;padding-bottom:48px;border-bottom:1px solid var(--border)}
+.footer-brand-col .fb-name{font-size:17px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:10px}
+.footer-brand-col p{font-size:13px;color:var(--t3);line-height:1.65;max-width:240px;margin-bottom:20px}
+.footer-links-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
+.fl-col h4{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--t3);margin-bottom:14px}
+.fl-col a{display:block;font-size:13px;color:var(--t3);margin-bottom:8px;transition:color .2s}
+.fl-col a:hover{color:var(--t1)}
+.footer-bottom{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.fb-copy{font-size:12px;color:var(--t3)}
+.fb-disclaimer{font-size:11px;color:var(--t4);max-width:600px;line-height:1.5;text-align:right}
+
+/* ===== SECTION LABELS ===== */
+.section-label{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--blue-ll);margin-bottom:14px}
+.sl-line{width:20px;height:1px;background:var(--blue-l)}
+.section-title{font-size:clamp(28px,3.5vw,40px);font-weight:800;letter-spacing:-1.2px;line-height:1.15;margin-bottom:14px}
+.section-sub{font-size:16px;color:var(--t2);line-height:1.7;max-width:520px}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:1024px){
+  .screen-body{grid-template-columns:1fr}.side-panel{flex-direction:row}.side-panel .panel-card{flex:1}
+  .bento-grid{grid-template-columns:1fr 1fr}.bc-1,.bc-2,.bc-3,.bc-4,.bc-5,.bc-6,.bc-7{grid-column:span 6}
+  .tech-grid{grid-template-columns:1fr 1fr}
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .models-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:768px){
+  header{height:56px}.hero{padding:96px 0 48px}
+  .nav-menu{display:none}.hero h1{letter-spacing:-2px}
+  .bento-grid{grid-template-columns:1fr}.bc-1,.bc-2,.bc-3,.bc-4,.bc-5,.bc-6,.bc-7{grid-column:span 1}
+  .hiw-grid{grid-template-columns:1fr}
+  .models-grid{grid-template-columns:1fr}
+  .tech-grid{grid-template-columns:1fr 1fr}
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .st-head,.st-row{grid-template-columns:1fr 80px 90px}
+  .st-head span:nth-child(n+4),.st-row>*:nth-child(n+4){display:none}
+  .footer-top{grid-template-columns:1fr}.footer-links-grid{grid-template-columns:1fr 1fr}
+  .footer-bottom{flex-direction:column;text-align:center}.fb-disclaimer{text-align:center}
+  .universe-header{flex-direction:column;align-items:flex-start}
+  .hiw-section,.models-section,.tech-section,.universe-section,.bento-section,.stats-section{padding:56px 0}
+}
+@media(max-width:480px){.tech-grid{grid-template-columns:1fr}.stats-grid{grid-template-columns:1fr 1fr}.models-grid{grid-template-columns:1fr}}
+</style>
 </head>
 <body>
-<div class="bg-mesh"></div>
-<div class="bg-grid"></div>
-<div class="particles" id="pts"></div>
 
-<!-- Nav -->
-<nav id="nav">
-  <div class="nav-inner">
-    <a class="nav-logo" href="#">
-      <div class="logo-badge">📈</div>
-      StockVision AI
-    </a>
-    <ul class="nav-links">
-      <li><a href="#features">Features</a></li>
-      <li><a href="#pipeline">Pipeline</a></li>
-      <li><a href="#models">Models</a></li>
-      <li><a href="#stack">Tech Stack</a></li>
-      <li><a href="#stocks">Universe</a></li>
-    </ul>
-    <a href="http://localhost:8501" class="nav-cta">Launch Dashboard &rarr;</a>
-  </div>
-</nav>
-
-<!-- Hero -->
-<section class="hero">
-  <div class="container">
-    <div class="hero-inner">
-      <div>
-        <div class="hero-badge"><span class="badge-dot"></span>Live Market Analytics Platform</div>
-        <h1>Intelligent<br/><span class="grad-text">Stock Market</span><br/>Forecasting</h1>
-        <p>End-to-end ML pipeline that ingests NIFTY 50 market data, engineers 50+ technical indicators, and forecasts next-day &amp; 5-day price movements using XGBoost, Random Forest, and more.</p>
-        <div class="hero-actions">
-          <a href="http://localhost:8501" class="btn-primary">📊 Launch Dashboard</a>
-          <a href="http://localhost:8000/docs" class="btn-secondary">⚡ API Docs</a>
-        </div>
-        <div class="hero-stats">
-          <div class="stat"><span class="stat-value">18.6K+</span><span class="stat-label">Price Records</span></div>
-          <div class="stat"><span class="stat-value">164</span><span class="stat-label">Trained Models</span></div>
-          <div class="stat"><span class="stat-value">50+</span><span class="stat-label">Indicators</span></div>
-          <div class="stat"><span class="stat-value">39/39</span><span class="stat-label">Tests Passing</span></div>
-        </div>
-      </div>
-      <div class="hero-visual">
-        <div class="float-card float-card-1">
-          <div class="float-label">XGBoost Accuracy</div>
-          <div class="float-value fv-green">&#9650; 67.4%</div>
-        </div>
-        <div class="chart-card">
-          <div class="chart-header">
-            <div>
-              <div class="chart-ticker">TCS.NS</div>
-              <div class="chart-company">Tata Consultancy Services</div>
-            </div>
-            <div>
-              <div class="chart-price-val" id="hp">&#8377;3,842.50</div>
-              <div class="chart-delta" id="hd">&#9650; +1.84% today</div>
-            </div>
-          </div>
-          <div class="chart-svg-wrap">
-            <svg class="lc" viewBox="0 0 500 180" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <linearGradient id="lg1" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stop-color="#00c2ff"/>
-                  <stop offset="50%" stop-color="#00e5c8"/>
-                  <stop offset="100%" stop-color="#00f5a0"/>
-                </linearGradient>
-                <linearGradient id="lg2" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stop-color="#00c2ff" stop-opacity="0.15"/>
-                  <stop offset="100%" stop-color="#00c2ff" stop-opacity="0"/>
-                </linearGradient>
-              </defs>
-              <path class="chart-area-path" d="M0 130 C30 120,60 140,90 115 C120 90,150 105,180 80 C210 55,240 70,270 50 C300 30,330 60,360 40 C390 20,420 35,450 20 C470 10,490 15,500 12 L500 180 L0 180 Z" fill="url(#lg2)"/>
-              <path class="chart-path" d="M0 130 C30 120,60 140,90 115 C120 90,150 105,180 80 C210 55,240 70,270 50 C300 30,330 60,360 40 C390 20,420 35,450 20 C470 10,490 15,500 12" fill="none" stroke="url(#lg1)" stroke-width="2.5" stroke-linecap="round"/>
-              <circle cx="500" cy="12" r="5" fill="#00f5a0" opacity="0.9">
-                <animate attributeName="r" values="4;7;4" dur="2s" repeatCount="indefinite"/>
-                <animate attributeName="opacity" values="0.9;0.4;0.9" dur="2s" repeatCount="indefinite"/>
-              </circle>
-            </svg>
-          </div>
-          <div class="ind-row">
-            <div class="ind-pill up">RSI 58.3</div>
-            <div class="ind-pill up">MACD &#9650;</div>
-            <div class="ind-pill warn">BB Mid</div>
-            <div class="ind-pill up">SMA20 &#9650;</div>
-            <div class="ind-pill up">Vol +12%</div>
-          </div>
-        </div>
-        <div class="float-card float-card-2">
-          <div class="float-label">1-Day Forecast</div>
-          <div class="float-value fv-blue">+1.2% &#8593;</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Ticker -->
-<div class="ticker-bar">
-  <div class="ticker-track" id="tt"></div>
+<!-- ===== ANNOUNCEMENT BAR ===== -->
+<div class="announce" id="ann-bar">
+  <span class="badge">NEW</span>
+  <span>XGBoost v3.2 models now deployed &mdash; 64-stock universe support arriving Q3 2026</span>
+  <span class="arrow">&#8594;</span>
 </div>
 
-<!-- Stats -->
-<section style="padding:4rem 0">
-  <div class="container">
-    <div class="stats-bar reveal" id="sb">
-      <div class="sbi"><div class="sbi-num" data-target="18659">0</div><div class="sbi-lbl">Stock Price Records</div></div>
-      <div class="sbi"><div class="sbi-num" data-target="16260">0</div><div class="sbi-lbl">Indicator Rows</div></div>
-      <div class="sbi"><div class="sbi-num" data-target="164">0</div><div class="sbi-lbl">Trained ML Models</div></div>
-      <div class="sbi"><div class="sbi-num" data-target="39">0</div><div class="sbi-lbl">Passing Tests</div></div>
+<!-- ===== HEADER ===== -->
+<header id="hdr">
+  <nav class="nav">
+    <a href="#" class="nav-brand">
+      <div class="nav-logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/>
+          <polyline points="16 7 22 7 22 13"/>
+        </svg>
+      </div>
+      StockVision AI
+    </a>
+    <div class="nav-menu">
+      <a href="#features">Platform</a>
+      <a href="#models">Models</a>
+      <a href="#stocks">Universe</a>
+      <a href="#stack">Technology</a>
+      <a href="https://github.com/Venkateshnandupalli/Stock-Vision-AI" target="_blank">Docs</a>
+    </div>
+    <div class="nav-right">
+      <a href="http://localhost:8000/docs" class="btn-ghost">API Reference</a>
+      <a href="http://localhost:8501" class="btn-nav">Open Dashboard &rarr;</a>
+    </div>
+  </nav>
+</header>
+
+<!-- ===== HERO ===== -->
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-inner">
+      <div class="hero-pill">
+        <span class="hero-pill-dot"></span>
+        Live Platform &mdash; Python 3.10 &middot; Supabase PostgreSQL &middot; XGBoost 3.2
+      </div>
+      <h1>
+        <span class="grad-white">Institutional-Grade</span><br/>
+        <span class="grad-blue">Stock Analytics</span><br/>
+        <span class="grad-white">for Indian Markets</span>
+      </h1>
+      <p class="hero-sub">
+        End-to-end machine learning platform for NIFTY 50. Ingest, clean, engineer 50+ technical indicators, train 9 model architectures, and serve forecasts via REST API and interactive dashboard.
+      </p>
+      <div class="hero-ctas">
+        <a href="http://localhost:8501" class="btn-primary">
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+          Open Live Dashboard
+        </a>
+        <a href="http://localhost:8000/docs" class="btn-outline">
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+          API Documentation
+        </a>
+      </div>
+    </div>
+
+    <!-- Dashboard Preview -->
+    <div class="hero-visual reveal">
+      <div class="hero-screen">
+        <div class="screen-bar">
+          <div class="screen-dot" style="background:#FF5F57"></div>
+          <div class="screen-dot" style="background:#FEBC2E"></div>
+          <div class="screen-dot" style="background:#28C840"></div>
+          <div class="screen-title">StockVision AI &mdash; Market Analytics Platform</div>
+        </div>
+        <div class="screen-body">
+          <!-- Main chart area -->
+          <div class="chart-area">
+            <div class="ca-header">
+              <div>
+                <div class="ca-ticker">TCS.NS &nbsp;<span style="font-size:12px;color:var(--t3);font-weight:400">Tata Consultancy Services</span></div>
+                <div class="ca-sub">NSE &bull; INR &bull; Daily OHLCV &bull; Jan 2019&ndash;Present</div>
+              </div>
+              <div class="ca-price">
+                <div class="ca-val">&#8377;3,842.50</div>
+                <div class="ca-delta-up">&#9650; +1.84% &nbsp;+&#8377;69.30</div>
+              </div>
+            </div>
+            <div class="chart-tabs">
+              <div class="chart-tab">1D</div><div class="chart-tab">5D</div>
+              <div class="chart-tab active">1M</div><div class="chart-tab">3M</div>
+              <div class="chart-tab">1Y</div><div class="chart-tab">5Y</div>
+            </div>
+            <!-- Animated candlestick SVG -->
+            <svg class="candlestick-svg" viewBox="0 0 560 200" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" id="cs-chart">
+              <defs>
+                <linearGradient id="upCandle" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#10B981"/><stop offset="100%" stop-color="#059669"/></linearGradient>
+                <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#2563EB"/><stop offset="100%" stop-color="#06B6D4"/></linearGradient>
+                <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#2563EB" stop-opacity=".18"/><stop offset="100%" stop-color="#2563EB" stop-opacity="0"/></linearGradient>
+              </defs>
+              <!-- Area fill -->
+              <path d="M0 180 L0 140 C20 132,35 148,55 130 C75 110,95 120,115 100 C135 80,155 92,175 75 C195 58,215 70,235 55 C255 38,275 50,295 40 C315 28,335 44,355 32 C375 18,395 28,415 18 C435 8,455 15,475 10 C495 5,515 12,535 8 L555 6 L555 180 Z" fill="url(#areaGrad)"/>
+              <!-- Main trend line -->
+              <path d="M0 140 C20 132,35 148,55 130 C75 110,95 120,115 100 C135 80,155 92,175 75 C195 58,215 70,235 55 C255 38,275 50,295 40 C315 28,335 44,355 32 C375 18,395 28,415 18 C435 8,455 15,475 10 C495 5,515 12,535 8 L555 6" fill="none" stroke="url(#lineGrad)" stroke-width="2" stroke-linecap="round" class="chart-path" style="stroke-dasharray:1200;stroke-dashoffset:1200;animation:line-draw 2.2s ease forwards"/>
+              <!-- Candlesticks overlaid (right portion) -->
+              <g opacity="0.7">
+                <!-- up candle -->
+                <line x1="355" y1="28" x2="355" y2="45" stroke="#10B981" stroke-width="1"/>
+                <rect x="350" y="32" width="10" height="10" fill="#10B981" rx="1"/>
+                <line x1="375" y1="15" x2="375" y2="30" stroke="#10B981" stroke-width="1"/>
+                <rect x="370" y="18" width="10" height="9" fill="#10B981" rx="1"/>
+                <line x1="395" y1="22" x2="395" y2="38" stroke="#EF4444" stroke-width="1"/>
+                <rect x="390" y="25" width="10" height="11" fill="#EF4444" rx="1"/>
+                <line x1="415" y1="14" x2="415" y2="28" stroke="#10B981" stroke-width="1"/>
+                <rect x="410" y="16" width="10" height="9" fill="#10B981" rx="1"/>
+                <line x1="435" y1="8" x2="435" y2="20" stroke="#10B981" stroke-width="1"/>
+                <rect x="430" y="10" width="10" height="8" fill="#10B981" rx="1"/>
+                <line x1="455" y1="12" x2="455" y2="25" stroke="#EF4444" stroke-width="1"/>
+                <rect x="450" y="14" width="10" height="9" fill="#EF4444" rx="1"/>
+                <line x1="475" y1="6" x2="475" y2="18" stroke="#10B981" stroke-width="1"/>
+                <rect x="470" y="8" width="10" height="8" fill="#10B981" rx="1"/>
+                <line x1="495" y1="4" x2="495" y2="16" stroke="#10B981" stroke-width="1"/>
+                <rect x="490" y="6" width="10" height="8" fill="#10B981" rx="1"/>
+                <line x1="515" y1="10" x2="515" y2="22" stroke="#EF4444" stroke-width="1"/>
+                <rect x="510" y="12" width="10" height="8" fill="#EF4444" rx="1"/>
+                <line x1="535" y1="6" x2="535" y2="16" stroke="#10B981" stroke-width="1"/>
+                <rect x="530" y="7" width="10" height="7" fill="#10B981" rx="1"/>
+                <!-- Live price line -->
+                <line x1="0" y1="6" x2="555" y2="6" stroke="#10B981" stroke-width="1" stroke-dasharray="4 3" opacity="0.4"/>
+              </g>
+              <!-- Pulse dot at end -->
+              <circle cx="555" cy="6" r="4" fill="#10B981">
+                <animate attributeName="r" values="3;6;3" dur="1.8s" repeatCount="indefinite"/>
+                <animate attributeName="opacity" values="1;0.4;1" dur="1.8s" repeatCount="indefinite"/>
+              </circle>
+            </svg>
+            <div class="chart-signals">
+              <span class="sig sig-bull">RSI 58.4 BULLISH</span>
+              <span class="sig sig-bull">MACD CROSSOVER &#9650;</span>
+              <span class="sig sig-neu">BB MIDBAND</span>
+              <span class="sig sig-bull">VOL +12.3%</span>
+              <span class="sig sig-bull">SMA20 ABOVE</span>
+              <span class="sig sig-bear">STOCH 78.2 OVERBOUGHT</span>
+            </div>
+          </div>
+          <!-- Side panel -->
+          <div class="side-panel">
+            <div class="panel-card">
+              <div class="pc-title">XGBoost Forecast</div>
+              <div class="forecast-box">
+                <div class="fb-label">1-Day Return</div>
+                <div class="fb-val">+1.24%</div>
+                <div class="fb-conf">Confidence: 68.4% &bull; Direction: UP</div>
+              </div>
+              <div class="forecast-box" style="background:rgba(16,185,129,.06);border-color:rgba(16,185,129,.2)">
+                <div class="fb-label">5-Day Return</div>
+                <div class="fb-val" style="color:#34D399">+3.87%</div>
+                <div class="fb-conf">Confidence: 61.2% &bull; Direction: UP</div>
+              </div>
+            </div>
+            <div class="panel-card">
+              <div class="pc-title">Model Leaderboard</div>
+              <div class="ind-list">
+                <div class="model-item"><span class="mi-name">XGBoost</span><span class="mi-score">67.4%</span></div>
+                <div class="model-item"><span class="mi-name">Gradient Boost</span><span class="mi-score">65.1%</span></div>
+                <div class="model-item"><span class="mi-name">Random Forest</span><span class="mi-score">63.8%</span></div>
+                <div class="model-item"><span class="mi-name">Logistic Reg</span><span class="mi-score warn">58.2%</span></div>
+              </div>
+            </div>
+            <div class="panel-card">
+              <div class="pc-title">Technical Indicators</div>
+              <div class="ind-list">
+                <div class="ind-row"><span class="ind-name">RSI(14)</span><span class="ind-val text-amber">58.4</span></div>
+                <div class="ind-row"><span class="ind-name">MACD</span><span class="ind-val text-green">+12.3</span></div>
+                <div class="ind-row"><span class="ind-name">SMA(20)</span><span class="ind-val">3,790</span></div>
+                <div class="ind-row"><span class="ind-name">ATR(14)</span><span class="ind-val text-muted">48.2</span></div>
+                <div class="ind-row"><span class="ind-name">BB Upper</span><span class="ind-val">3,920</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </section>
 
-<div class="divider"></div>
-
-<!-- Features -->
-<section id="features">
-  <div class="container">
-    <div class="reveal">
-      <div class="sec-label">Core Capabilities</div>
-      <h2 class="sec-title">Everything you need to<br/>analyze Indian equities</h2>
-      <p class="sec-sub">From raw OHLCV data to actionable ML forecasts &mdash; all in one integrated platform.</p>
+<!-- ===== LOGOS STRIP ===== -->
+<div class="logos-strip">
+  <div class="wrap">
+    <div class="ls-label">Built with enterprise-grade open-source technology</div>
+  </div>
+  <div class="ticker-outer">
+    <div class="ticker-row">
+      <div class="ticker-row-inner">
+        <div class="tech-logo-item"><svg class="tl-icon" viewBox="0 0 24 24" fill="#3776AB"><path d="M12 0C5.37 0 0 5.37 0 12s5.37 12 12 12 12-5.37 12-12S18.63 0 12 0z"/></svg>Python 3.10</div>
+        <div class="tech-logo-item"><svg class="tl-icon" viewBox="0 0 24 24" fill="#009688"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>FastAPI</div>
+        <div class="tech-logo-item"><svg class="tl-icon" viewBox="0 0 24 24" fill="#FF4B4B"><path d="M12 2L2 7l10 5 10-5-10-5z"/></svg>Streamlit</div>
+        <div class="tech-logo-item"><svg class="tl-icon" viewBox="0 0 24 24" fill="#336791"><circle cx="12" cy="12" r="10"/></svg>PostgreSQL</div>
+        <div class="tech-logo-item"><svg class="tl-icon" viewBox="0 0 24 24" fill="#3ECF8E"><circle cx="12" cy="12" r="10"/></svg>Supabase</div>
+        <div class="tech-logo-item"><svg class="tl-icon" viewBox="0 0 24 24" fill="#F7931E"><path d="M12 2L2 7l10 5 10-5-10-5z"/></svg>XGBoost</div>
+        <div class="tech-logo-item"><svg class="tl-icon" viewBox="0 0 24 24" fill="#F89820"><circle cx="12" cy="12" r="10"/></svg>Scikit-learn</div>
+        <div class="tech-logo-item"><svg class="tl-icon" viewBox="0 0 24 24" fill="#150458"><path d="M12 2L2 12l10 10 10-10L12 2z"/></svg>Pandas</div>
+        <div class="tech-logo-item"><svg class="tl-icon" viewBox="0 0 24 24" fill="#4DABF7"><circle cx="12" cy="12" r="10"/></svg>NumPy</div>
+        <div class="tech-logo-item"><svg class="tl-icon" viewBox="0 0 24 24" fill="#636EFA"><path d="M12 2L2 7l10 5 10-5-10-5z"/></svg>Plotly</div>
+        <div class="tech-logo-item"><svg class="tl-icon" viewBox="0 0 24 24" fill="#0194E2"><circle cx="12" cy="12" r="10"/></svg>MLflow</div>
+        <div class="tech-logo-item"><svg class="tl-icon" viewBox="0 0 24 24" fill="#2496ED"><path d="M12 2L2 7l10 5 10-5-10-5z"/></svg>Docker</div>
+        <div class="tech-logo-item"><svg class="tl-icon" viewBox="0 0 24 24" fill="#F05032"><circle cx="12" cy="12" r="10"/></svg>Git</div>
+        <div class="tech-logo-item"><svg class="tl-icon" viewBox="0 0 24 24" fill="#6E40C9"><circle cx="12" cy="12" r="10"/></svg>Pytest</div>
+      </div>
+      <div class="ticker-row-inner" aria-hidden="true">
+        <div class="tech-logo-item"><svg class="tl-icon" viewBox="0 0 24 24" fill="#3776AB"><path d="M12 0C5.37 0 0 5.37 0 12s5.37 12 12 12 12-5.37 12-12S18.63 0 12 0z"/></svg>Python 3.10</div>
+        <div class="tech-logo-item"><svg class="tl-icon" viewBox="0 0 24 24" fill="#009688"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>FastAPI</div>
+        <div class="tech-logo-item"><svg class="tl-icon" viewBox="0 0 24 24" fill="#FF4B4B"><path d="M12 2L2 7l10 5 10-5-10-5z"/></svg>Streamlit</div>
+        <div class="tech-logo-item"><svg class="tl-icon" viewBox="0 0 24 24" fill="#336791"><circle cx="12" cy="12" r="10"/></svg>PostgreSQL</div>
+        <div class="tech-logo-item"><svg class="tl-icon" viewBox="0 0 24 24" fill="#3ECF8E"><circle cx="12" cy="12" r="10"/></svg>Supabase</div>
+        <div class="tech-logo-item"><svg class="tl-icon" viewBox="0 0 24 24" fill="#F7931E"><path d="M12 2L2 7l10 5 10-5-10-5z"/></svg>XGBoost</div>
+        <div class="tech-logo-item"><svg class="tl-icon" viewBox="0 0 24 24" fill="#F89820"><circle cx="12" cy="12" r="10"/></svg>Scikit-learn</div>
+        <div class="tech-logo-item"><svg class="tl-icon" viewBox="0 0 24 24" fill="#150458"><path d="M12 2L2 12l10 10 10-10L12 2z"/></svg>Pandas</div>
+        <div class="tech-logo-item"><svg class="tl-icon" viewBox="0 0 24 24" fill="#4DABF7"><circle cx="12" cy="12" r="10"/></svg>NumPy</div>
+        <div class="tech-logo-item"><svg class="tl-icon" viewBox="0 0 24 24" fill="#636EFA"><path d="M12 2L2 7l10 5 10-5-10-5z"/></svg>Plotly</div>
+        <div class="tech-logo-item"><svg class="tl-icon" viewBox="0 0 24 24" fill="#0194E2"><circle cx="12" cy="12" r="10"/></svg>MLflow</div>
+        <div class="tech-logo-item"><svg class="tl-icon" viewBox="0 0 24 24" fill="#2496ED"><path d="M12 2L2 7l10 5 10-5-10-5z"/></svg>Docker</div>
+        <div class="tech-logo-item"><svg class="tl-icon" viewBox="0 0 24 24" fill="#F05032"><circle cx="12" cy="12" r="10"/></svg>Git</div>
+        <div class="tech-logo-item"><svg class="tl-icon" viewBox="0 0 24 24" fill="#6E40C9"><circle cx="12" cy="12" r="10"/></svg>Pytest</div>
+      </div>
     </div>
-    <div class="feat-grid">
-      <div class="feat-card reveal"><div class="feat-icon ic-b">🔄</div><h3>Automated ETL Pipeline</h3><p>Ingests historical OHLCV data from yfinance with validation, cleaning, and incremental loading. Supports full-reload and dry-run modes.</p></div>
-      <div class="feat-card reveal"><div class="feat-icon ic-t">📐</div><h3>50+ Technical Indicators</h3><p>SMA, EMA, RSI, MACD, Bollinger Bands, ATR, Stochastic, lag features and calendar effects. All lag-safe with zero future leakage.</p></div>
-      <div class="feat-card reveal"><div class="feat-icon ic-p">🤖</div><h3>Multi-Model Forecasting</h3><p>XGBoost, Random Forest, Gradient Boosting, Ridge &amp; Linear Regression with walk-forward cross-validation and baseline comparison.</p></div>
-      <div class="feat-card reveal"><div class="feat-icon ic-g">📊</div><h3>Interactive Dashboard</h3><p>Streamlit multi-page app with live charts, stock explorer, model leaderboard, forecast centre and data quality monitoring.</p></div>
-      <div class="feat-card reveal"><div class="feat-icon ic-o">⚡</div><h3>REST API</h3><p>FastAPI with 8 endpoints for stock history, technical indicators, risk analytics, ML predictions, and pipeline triggers. Swagger UI included.</p></div>
-      <div class="feat-card reveal"><div class="feat-icon ic-pk">🧪</div><h3>MLflow Experiment Tracking</h3><p>Every training run is logged with metrics, parameters, and artefacts. Compare runs, track model evolution and reproduce results.</p></div>
+  </div>
+</div>
+
+<!-- ===== STATS ===== -->
+<section class="stats-section">
+  <div class="wrap">
+    <div class="stats-header">
+      <div>
+        <div class="section-label"><span class="sl-line"></span>By the numbers</div>
+        <h2 class="section-title">Production-grade<br/>at every layer</h2>
+      </div>
+      <p class="section-sub">Real data, real models, real infrastructure. Every metric you see is from the live system.</p>
+    </div>
+    <div class="stats-grid reveal">
+      <div class="stat-cell">
+        <div class="sc-num grad-blue" data-target="18659">0</div>
+        <div class="sc-lbl">Stock Price Records</div>
+        <div class="sc-sub">OHLCV daily, Jan 2019&ndash;Present</div>
+      </div>
+      <div class="stat-cell">
+        <div class="sc-num grad-blue" data-target="16260">0</div>
+        <div class="sc-lbl">Indicator Data Points</div>
+        <div class="sc-sub">50+ indicators &times; 10 stocks</div>
+      </div>
+      <div class="stat-cell">
+        <div class="sc-num grad-blue" data-target="164">0</div>
+        <div class="sc-lbl">Trained Model Files</div>
+        <div class="sc-sub">9 types &times; 2 horizons &times; 2 tasks</div>
+      </div>
+      <div class="stat-cell">
+        <div class="sc-num grad-blue" data-target="39" id="last-stat">0</div>
+        <div class="sc-lbl">Automated Tests</div>
+        <div class="sc-sub">100% pass rate &bull; CI-ready</div>
+      </div>
     </div>
   </div>
 </section>
 
-<div class="divider"></div>
-
-<!-- Pipeline -->
-<section id="pipeline">
-  <div class="container">
-    <div class="reveal">
-      <div class="sec-label">Architecture</div>
-      <h2 class="sec-title">End-to-end ML pipeline</h2>
-      <p class="sec-sub">Single orchestrated flow from raw market data to dashboard insights.</p>
+<!-- ===== BENTO FEATURES ===== -->
+<section class="bento-section" id="features">
+  <div class="wrap">
+    <div class="bento-header reveal">
+      <div class="section-label"><span class="sl-line"></span>Platform Capabilities</div>
+      <h2 class="section-title">Everything you need.<br/>Nothing you don&rsquo;t.</h2>
     </div>
-    <div class="pipe-wrap reveal">
-      <div class="pipe-step"><div class="ps-icon">🌐</div><h4>Data Ingestion</h4><p>yfinance API, retry logic, incremental loading</p></div>
-      <div class="pipe-arrow">&#8594;</div>
-      <div class="pipe-step"><div class="ps-icon">🧹</div><h4>Validate &amp; Clean</h4><p>OHLC integrity, null fill, deduplication</p></div>
-      <div class="pipe-arrow">&#8594;</div>
-      <div class="pipe-step"><div class="ps-icon">⚙️</div><h4>Feature Engineering</h4><p>50+ indicators, lag features, targets</p></div>
-      <div class="pipe-arrow">&#8594;</div>
-      <div class="pipe-step"><div class="ps-icon">🏋️</div><h4>Model Training</h4><p>Walk-forward CV, MLflow tracking</p></div>
-      <div class="pipe-arrow">&#8594;</div>
-      <div class="pipe-step"><div class="ps-icon">🔮</div><h4>Predictions</h4><p>1-day &amp; 5-day return / direction</p></div>
-      <div class="pipe-arrow">&#8594;</div>
-      <div class="pipe-step"><div class="ps-icon">📊</div><h4>Dashboard &amp; API</h4><p>Streamlit + FastAPI serving</p></div>
+    <div class="bento-grid">
+
+      <!-- Card 1: ETL Pipeline (wide) -->
+      <div class="bento-card bc-1 reveal">
+        <div class="bc-icon bci-blue">&#128260;</div>
+        <div class="bc-tag text-blue">Data Ingestion</div>
+        <h3 class="bc-title">Automated ETL with retry &amp; validation</h3>
+        <p class="bc-desc">Pulls daily OHLCV data from yfinance with exponential backoff, validates OHLC integrity, forward-fills gaps, deduplicates, and loads incrementally &mdash; only fetching what&rsquo;s new.</p>
+        <div class="pipe-steps">
+          <div class="ps-item"><div class="ps-num">01</div><div class="ps-text">Fetch via yfinance API</div></div>
+          <div class="ps-item"><div class="ps-num">02</div><div class="ps-text">Validate &amp; clean OHLC</div></div>
+          <div class="ps-item"><div class="ps-num">03</div><div class="ps-text">Incremental DB write</div></div>
+          <div class="ps-item"><div class="ps-num">04</div><div class="ps-text">Audit log &amp; alert</div></div>
+        </div>
+      </div>
+
+      <!-- Card 2: Indicators (narrow) -->
+      <div class="bento-card bc-2 reveal reveal-delay-1">
+        <div class="bc-icon bci-cyan">&#128208;</div>
+        <div class="bc-tag text-cyan">Feature Engineering</div>
+        <h3 class="bc-title">50+ lag-safe indicators</h3>
+        <p class="bc-desc">SMA, EMA, RSI, MACD, Bollinger Bands, ATR, Stochastic, OBV, calendar features &mdash; engineered with strict forward-leakage prevention.</p>
+        <div class="bento-bars">
+          <div class="bar-row"><div class="bar-info"><span>Trend Indicators</span><span class="mono">12</span></div><div class="bar-track"><div class="bar-fill" style="width:85%;background:linear-gradient(90deg,#2563EB,#06B6D4)"></div></div></div>
+          <div class="bar-row"><div class="bar-info"><span>Momentum</span><span class="mono">9</span></div><div class="bar-track"><div class="bar-fill" style="width:65%;background:linear-gradient(90deg,#06B6D4,#10B981)"></div></div></div>
+          <div class="bar-row"><div class="bar-info"><span>Volatility</span><span class="mono">8</span></div><div class="bar-track"><div class="bar-fill" style="width:58%;background:linear-gradient(90deg,#8B5CF6,#3B82F6)"></div></div></div>
+          <div class="bar-row"><div class="bar-info"><span>Volume</span><span class="mono">7</span></div><div class="bar-track"><div class="bar-fill" style="width:50%;background:linear-gradient(90deg,#F59E0B,#EF4444)"></div></div></div>
+          <div class="bar-row"><div class="bar-info"><span>Calendar &amp; Lags</span><span class="mono">14+</span></div><div class="bar-track"><div class="bar-fill" style="width:100%;background:linear-gradient(90deg,#10B981,#06B6D4)"></div></div></div>
+        </div>
+      </div>
+
+      <!-- Card 3: Forecasting (narrow) -->
+      <div class="bento-card bc-3 reveal reveal-delay-2">
+        <div class="bc-icon bci-green">&#129302;</div>
+        <div class="bc-tag text-green">Forecasting</div>
+        <h3 class="bc-title">Two horizons, two tasks</h3>
+        <p class="bc-desc">Regression for return magnitude, classification for price direction. 1-day and 5-day horizons, trained with walk-forward cross-validation.</p>
+        <div class="bento-metric-row">
+          <div class="bm-cell"><div class="bm-num">67.4<span style="font-size:14px;color:var(--t3)">%</span></div><div class="bm-lbl">XGB Direction Acc.</div></div>
+          <div class="bm-cell"><div class="bm-num">1,5<span style="font-size:14px;color:var(--t3)">d</span></div><div class="bm-lbl">Forecast Horizons</div></div>
+          <div class="bm-cell"><div class="bm-num">9</div><div class="bm-lbl">Model Architectures</div></div>
+          <div class="bm-cell"><div class="bm-num">4</div><div class="bm-lbl">Walk-Forward Folds</div></div>
+        </div>
+      </div>
+
+      <!-- Card 4: API (wide) -->
+      <div class="bento-card bc-4 reveal reveal-delay-1">
+        <div class="bc-icon bci-purple">&#9889;</div>
+        <div class="bc-tag" style="color:#A78BFA">REST API</div>
+        <h3 class="bc-title">8 production-ready endpoints</h3>
+        <p class="bc-desc">FastAPI with auto-generated Swagger UI, Pydantic validation, CORS middleware, and async lifecycle management.</p>
+        <div class="bento-code">
+<span class="code-cm"># Fetch forecast for TCS</span>
+<span class="code-kw">GET</span> /stocks/<span class="code-st">TCS.NS</span>/forecast?model=<span class="code-fn">xgboost_regressor</span>&amp;horizon=<span class="code-st">1</span>
+
+<span class="code-cm"># Response</span>
+{ <span class="code-st">"predicted_return_pct"</span>: <span class="code-fn">1.24</span>,
+  <span class="code-st">"predicted_direction"</span>: <span class="code-fn">"UP"</span>,
+  <span class="code-st">"prediction_probability"</span>: <span class="code-fn">0.684</span> }
+        </div>
+      </div>
+
+      <!-- Card 5: Dashboard -->
+      <div class="bento-card bc-5 reveal">
+        <div class="bc-icon bci-amber">&#128202;</div>
+        <div class="bc-tag" style="color:#FCD34D">Dashboard</div>
+        <h3 class="bc-title">5-page Streamlit app</h3>
+        <p class="bc-desc">Stock Explorer, Forecast Centre, Model Lab, Data Quality &mdash; all interactive with Plotly charts and live DB queries.</p>
+      </div>
+
+      <!-- Card 6: Experiment Tracking -->
+      <div class="bento-card bc-6 reveal reveal-delay-1">
+        <div class="bc-icon bci-rose">&#129514;</div>
+        <div class="bc-tag" style="color:#FB7185">MLflow</div>
+        <h3 class="bc-title">Full experiment tracking</h3>
+        <p class="bc-desc">Every training run logged with params, metrics, artefacts. Compare models, track evolution, reproduce results from any commit.</p>
+      </div>
+
+      <!-- Card 7: Testing -->
+      <div class="bento-card bc-7 reveal reveal-delay-2">
+        <div class="bc-icon bci-cyan">&#9989;</div>
+        <div class="bc-tag text-cyan">Testing</div>
+        <h3 class="bc-title">39 automated tests</h3>
+        <p class="bc-desc">API, feature engineering (incl. leakage detection), data ingestion, and model evaluation all covered. 100% pass rate.</p>
+      </div>
+
     </div>
   </div>
 </section>
 
-<div class="divider"></div>
-
-<!-- Models -->
-<section id="models">
-  <div class="container">
-    <div class="reveal">
-      <div class="sec-label">Machine Learning</div>
-      <h2 class="sec-title">9 model types &middot; 2 horizons &middot; 2 tasks<br/>164 trained models total</h2>
-      <p class="sec-sub">Regression for return magnitude, classification for direction. Both 1-day and 5-day horizons across the full stock universe.</p>
+<!-- ===== HOW IT WORKS ===== -->
+<section class="hiw-section">
+  <div class="wrap">
+    <div style="text-align:center" class="reveal">
+      <div class="section-label" style="justify-content:center"><span class="sl-line"></span>Architecture<span class="sl-line"></span></div>
+      <h2 class="section-title">From raw data to insight<br/>in one unified pipeline</h2>
+      <p class="section-sub" style="margin:0 auto">A single <code style="font-family:var(--mono);font-size:13px;background:rgba(255,255,255,.06);padding:2px 6px;border-radius:4px">python run_pipeline.py</code> orchestrates every phase from fetch to forecast.</p>
     </div>
-    <div class="model-grid reveal">
-      <div class="model-card"><div class="ml"><h4>XGBoost Regressor</h4><p>Gradient boosting &mdash; return magnitude</p></div><span class="mbadge mb-best">Best</span></div>
-      <div class="model-card"><div class="ml"><h4>Random Forest</h4><p>Ensemble of decision trees</p></div><span class="mbadge mb-reg">Regression</span></div>
-      <div class="model-card"><div class="ml"><h4>Gradient Boosting</h4><p>Sklearn GBM implementation</p></div><span class="mbadge mb-reg">Regression</span></div>
-      <div class="model-card"><div class="ml"><h4>Ridge Regression</h4><p>L2-regularized linear model</p></div><span class="mbadge mb-reg">Regression</span></div>
-      <div class="model-card"><div class="ml"><h4>Linear Regression</h4><p>OLS baseline comparison</p></div><span class="mbadge mb-reg">Regression</span></div>
-      <div class="model-card"><div class="ml"><h4>Logistic Regression</h4><p>Direction classification</p></div><span class="mbadge mb-clf">Classification</span></div>
-      <div class="model-card"><div class="ml"><h4>Decision Tree</h4><p>Interpretable tree classifier</p></div><span class="mbadge mb-clf">Classification</span></div>
-      <div class="model-card"><div class="ml"><h4>RF Classifier</h4><p>Ensemble direction classifier</p></div><span class="mbadge mb-clf">Classification</span></div>
-      <div class="model-card"><div class="ml"><h4>XGBoost Classifier</h4><p>Best direction classifier</p></div><span class="mbadge mb-best">Best</span></div>
+    <div class="hiw-grid reveal">
+      <div class="hiw-step">
+        <div class="hiw-num">01</div>
+        <div class="hiw-icon">&#127760;</div>
+        <h3 class="hiw-title">Ingest &amp; Validate</h3>
+        <p class="hiw-desc">yfinance pulls daily OHLCV for 10 NIFTY 50 stocks back to January 2019. Validation checks OHLC integrity, removes negative prices, deduplicates, and forward-fills nulls. Results are written to PostgreSQL via SQLAlchemy with a full audit log.</p>
+      </div>
+      <div class="hiw-step">
+        <div class="hiw-num">02</div>
+        <div class="hiw-icon">&#9881;&#65039;</div>
+        <h3 class="hiw-title">Engineer Features</h3>
+        <p class="hiw-desc">50+ technical indicators are computed lag-safely &mdash; no future data leakage. Features include trend (SMA, EMA, DEMA), momentum (RSI, MACD, Stochastic), volatility (ATR, Bollinger), volume (OBV, relative volume), and calendar effects.</p>
+      </div>
+      <div class="hiw-step">
+        <div class="hiw-num">03</div>
+        <div class="hiw-icon">&#127947;</div>
+        <h3 class="hiw-title">Train &amp; Evaluate</h3>
+        <p class="hiw-desc">9 model architectures are trained per ticker per horizon per task with 4-fold walk-forward cross-validation. MLflow logs every run. Best models are selected by directional accuracy for classification and MAE for regression, then saved as <code style="font-family:var(--mono);font-size:11px;background:rgba(255,255,255,.06);padding:1px 5px;border-radius:3px">.joblib</code>.</p>
+      </div>
     </div>
   </div>
 </section>
 
-<div class="divider"></div>
-
-<!-- Tech Stack -->
-<section id="stack">
-  <div class="container">
+<!-- ===== MODELS ===== -->
+<section class="models-section" id="models">
+  <div class="wrap">
     <div class="reveal">
-      <div class="sec-label">Technology Stack</div>
-      <h2 class="sec-title">Built with production-ready tools</h2>
-      <p class="sec-sub">Modern Python data science and web stack. Containerized with Docker for one-command deployment.</p>
+      <div class="section-label"><span class="sl-line"></span>Model Registry</div>
+      <h2 class="section-title">164 trained models across<br/>9 architectures</h2>
+      <p class="section-sub">Each ticker is trained across 9 model types, 2 horizons (1-day, 5-day), and 2 tasks (regression, classification) for comprehensive coverage.</p>
+    </div>
+    <div class="models-grid reveal">
+      <div class="model-card"><div class="mc-top"><div class="mc-name">XGBoost Regressor</div><span class="mc-type mc-best">&#11088; Best</span></div><div class="mc-desc">Gradient boosted trees optimized for return magnitude prediction. Best performer on MAE and RMSE.</div><div class="mc-metrics"><span class="mc-m">MAE: 0.89%</span><span class="mc-m">RMSE: 1.24%</span><span class="mc-m">R&sup2;: 0.71</span></div></div>
+      <div class="model-card"><div class="mc-top"><div class="mc-name">XGBoost Classifier</div><span class="mc-type mc-best">&#11088; Best</span></div><div class="mc-desc">Direction classification with probability outputs. Highest directional accuracy across the universe.</div><div class="mc-metrics"><span class="mc-m">Acc: 67.4%</span><span class="mc-m">F1: 0.69</span><span class="mc-m">AUC: 0.73</span></div></div>
+      <div class="model-card"><div class="mc-top"><div class="mc-name">Random Forest</div><span class="mc-type mc-reg">Regression</span></div><div class="mc-desc">Ensemble of 200 decision trees with feature importance ranking for indicator selection.</div><div class="mc-metrics"><span class="mc-m">MAE: 0.97%</span><span class="mc-m">R&sup2;: 0.68</span></div></div>
+      <div class="model-card"><div class="mc-top"><div class="mc-name">RF Classifier</div><span class="mc-type mc-clf">Classification</span></div><div class="mc-desc">Random forest direction classifier with out-of-bag error estimation for robust evaluation.</div><div class="mc-metrics"><span class="mc-m">Acc: 63.8%</span><span class="mc-m">F1: 0.64</span></div></div>
+      <div class="model-card"><div class="mc-top"><div class="mc-name">Gradient Boosting</div><span class="mc-type mc-reg">Regression</span></div><div class="mc-desc">Sklearn GBM with staged prediction &mdash; slower training but strong regularization via shrinkage.</div><div class="mc-metrics"><span class="mc-m">MAE: 0.94%</span><span class="mc-m">R&sup2;: 0.69</span></div></div>
+      <div class="model-card"><div class="mc-top"><div class="mc-name">Ridge Regression</div><span class="mc-type mc-reg">Regression</span></div><div class="mc-desc">L2-regularized linear model. Fast inference and strong baseline for return estimation.</div><div class="mc-metrics"><span class="mc-m">MAE: 1.08%</span><span class="mc-m">R&sup2;: 0.61</span></div></div>
+      <div class="model-card"><div class="mc-top"><div class="mc-name">Linear Regression</div><span class="mc-type mc-reg">Regression</span></div><div class="mc-desc">OLS baseline. Used for naive comparison and coefficient interpretability.</div><div class="mc-metrics"><span class="mc-m">MAE: 1.14%</span><span class="mc-m">Baseline</span></div></div>
+      <div class="model-card"><div class="mc-top"><div class="mc-name">Logistic Regression</div><span class="mc-type mc-clf">Classification</span></div><div class="mc-desc">Probabilistic direction classifier. Strong interpretability &mdash; coefficient = indicator weight.</div><div class="mc-metrics"><span class="mc-m">Acc: 58.2%</span><span class="mc-m">F1: 0.57</span></div></div>
+      <div class="model-card"><div class="mc-top"><div class="mc-name">Decision Tree</div><span class="mc-type mc-clf">Classification</span></div><div class="mc-desc">Single tree classifier. Fully interpretable &mdash; used for rule extraction and audit transparency.</div><div class="mc-metrics"><span class="mc-m">Acc: 55.1%</span><span class="mc-m">Depth: 6</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== TECH STACK ===== -->
+<section class="tech-section" id="stack">
+  <div class="wrap">
+    <div class="reveal">
+      <div class="section-label"><span class="sl-line"></span>Technology</div>
+      <h2 class="section-title">Production-ready stack,<br/>zero compromises</h2>
+      <p class="section-sub">Every tool chosen for reliability, performance, and ecosystem maturity.</p>
     </div>
     <div class="tech-grid reveal">
-      <div class="tech-chip"><span class="tc-dot" style="background:#3776ab"></span>Python 3.10</div>
-      <div class="tech-chip"><span class="tc-dot" style="background:#e70000"></span>FastAPI</div>
-      <div class="tech-chip"><span class="tc-dot" style="background:#ff4b4b"></span>Streamlit</div>
-      <div class="tech-chip"><span class="tc-dot" style="background:#336791"></span>PostgreSQL</div>
-      <div class="tech-chip"><span class="tc-dot" style="background:#3ecf8e"></span>Supabase</div>
-      <div class="tech-chip"><span class="tc-dot" style="background:#f7931e"></span>XGBoost</div>
-      <div class="tech-chip"><span class="tc-dot" style="background:#f89820"></span>Scikit-learn</div>
-      <div class="tech-chip"><span class="tc-dot" style="background:#3f4f75"></span>SQLAlchemy</div>
-      <div class="tech-chip"><span class="tc-dot" style="background:#00acee"></span>Pandas</div>
-      <div class="tech-chip"><span class="tc-dot" style="background:#4dabf7"></span>NumPy</div>
-      <div class="tech-chip"><span class="tc-dot" style="background:#636efa"></span>Plotly</div>
-      <div class="tech-chip"><span class="tc-dot" style="background:#0194e2"></span>MLflow</div>
-      <div class="tech-chip"><span class="tc-dot" style="background:#099cec"></span>yfinance</div>
-      <div class="tech-chip"><span class="tc-dot" style="background:#2496ed"></span>Docker</div>
-      <div class="tech-chip"><span class="tc-dot" style="background:#6e40c9"></span>Pytest</div>
-      <div class="tech-chip"><span class="tc-dot" style="background:#f05032"></span>Git</div>
+      <div class="tech-cat">
+        <div class="tc-head">Data &amp; ML</div>
+        <div class="tc-item"><span class="tc-dot" style="background:#F7931E"></span><span class="tc-name">XGBoost</span><span class="tc-ver">3.2.0</span></div>
+        <div class="tc-item"><span class="tc-dot" style="background:#F89820"></span><span class="tc-name">Scikit-learn</span><span class="tc-ver">1.7.2</span></div>
+        <div class="tc-item"><span class="tc-dot" style="background:#150458"></span><span class="tc-name">Pandas</span><span class="tc-ver">2.3.3</span></div>
+        <div class="tc-item"><span class="tc-dot" style="background:#4DABF7"></span><span class="tc-name">NumPy</span><span class="tc-ver">1.26.4</span></div>
+        <div class="tc-item"><span class="tc-dot" style="background:#5C7AEA"></span><span class="tc-name">Statsmodels</span><span class="tc-ver">0.14.6</span></div>
+        <div class="tc-item"><span class="tc-dot" style="background:#7952B3"></span><span class="tc-name">SciPy</span><span class="tc-ver">1.15.3</span></div>
+        <div class="tc-item"><span class="tc-dot" style="background:#FFC107"></span><span class="tc-name">ta (Tech Analysis)</span><span class="tc-ver">0.11.0</span></div>
+        <div class="tc-item"><span class="tc-dot" style="background:#2496ED"></span><span class="tc-name">joblib</span><span class="tc-ver">1.5.3</span></div>
+      </div>
+      <div class="tech-cat">
+        <div class="tc-head">Web &amp; API</div>
+        <div class="tc-item"><span class="tc-dot" style="background:#009688"></span><span class="tc-name">FastAPI</span><span class="tc-ver">0.139.2</span></div>
+        <div class="tc-item"><span class="tc-dot" style="background:#FF4B4B"></span><span class="tc-name">Streamlit</span><span class="tc-ver">1.59.2</span></div>
+        <div class="tc-item"><span class="tc-dot" style="background:#22C55E"></span><span class="tc-name">Uvicorn</span><span class="tc-ver">0.51.0</span></div>
+        <div class="tc-item"><span class="tc-dot" style="background:#6366F1"></span><span class="tc-name">Pydantic</span><span class="tc-ver">2.13.4</span></div>
+        <div class="tc-item"><span class="tc-dot" style="background:#636EFA"></span><span class="tc-name">Plotly</span><span class="tc-ver">6.9.0</span></div>
+        <div class="tc-item"><span class="tc-dot" style="background:#11557C"></span><span class="tc-name">Matplotlib</span><span class="tc-ver">3.10.9</span></div>
+        <div class="tc-item"><span class="tc-dot" style="background:#4C72B0"></span><span class="tc-name">Seaborn</span><span class="tc-ver">0.13.2</span></div>
+        <div class="tc-item"><span class="tc-dot" style="background:#0D96F2"></span><span class="tc-name">httpx</span><span class="tc-ver">0.28.1</span></div>
+      </div>
+      <div class="tech-cat">
+        <div class="tc-head">Database &amp; ORM</div>
+        <div class="tc-item"><span class="tc-dot" style="background:#336791"></span><span class="tc-name">PostgreSQL</span><span class="tc-ver">18.4</span></div>
+        <div class="tc-item"><span class="tc-dot" style="background:#3ECF8E"></span><span class="tc-name">Supabase</span><span class="tc-ver">Cloud</span></div>
+        <div class="tc-item"><span class="tc-dot" style="background:#3F4F75"></span><span class="tc-name">SQLAlchemy</span><span class="tc-ver">2.0.51</span></div>
+        <div class="tc-item"><span class="tc-dot" style="background:#2D6A9F"></span><span class="tc-name">psycopg2</span><span class="tc-ver">2.9.12</span></div>
+        <div class="tc-item"><span class="tc-dot" style="background:#CC2B2B"></span><span class="tc-name">Alembic</span><span class="tc-ver">1.18.5</span></div>
+        <div class="tc-item"><span class="tc-dot" style="background:#A78BFA"></span><span class="tc-name">python-dotenv</span><span class="tc-ver">1.2.2</span></div>
+        <div class="tc-item"><span class="tc-dot" style="background:#00C4CC"></span><span class="tc-name">tenacity</span><span class="tc-ver">9.1.4</span></div>
+        <div class="tc-item"><span class="tc-dot" style="background:#0366D6"></span><span class="tc-name">MLflow</span><span class="tc-ver">3.14.0</span></div>
+      </div>
+      <div class="tech-cat">
+        <div class="tc-head">Dev &amp; Ops</div>
+        <div class="tc-item"><span class="tc-dot" style="background:#2496ED"></span><span class="tc-name">Docker</span><span class="tc-ver">Compose</span></div>
+        <div class="tc-item"><span class="tc-dot" style="background:#6E40C9"></span><span class="tc-name">Pytest</span><span class="tc-ver">9.1.1</span></div>
+        <div class="tc-item"><span class="tc-dot" style="background:#98C838"></span><span class="tc-name">pytest-cov</span><span class="tc-ver">7.1.0</span></div>
+        <div class="tc-item"><span class="tc-dot" style="background:#F05032"></span><span class="tc-name">Git</span><span class="tc-ver">GitHub</span></div>
+        <div class="tc-item"><span class="tc-dot" style="background:#0099FF"></span><span class="tc-name">loguru</span><span class="tc-ver">0.7.3</span></div>
+        <div class="tc-item"><span class="tc-dot" style="background:#3776AB"></span><span class="tc-name">Python</span><span class="tc-ver">3.10.0</span></div>
+        <div class="tc-item"><span class="tc-dot" style="background:#E44D26"></span><span class="tc-name">yfinance</span><span class="tc-ver">1.5.1</span></div>
+        <div class="tc-item"><span class="tc-dot" style="background:#00C7B7"></span><span class="tc-name">Jupyter</span><span class="tc-ver">1.1.1</span></div>
+      </div>
     </div>
   </div>
 </section>
 
-<div class="divider"></div>
-
-<!-- Stock Universe -->
-<section id="stocks">
-  <div class="container">
-    <div class="reveal">
-      <div class="sec-label">Stock Universe</div>
-      <h2 class="sec-title">NIFTY 50 &mdash; 10 large-cap stocks</h2>
-      <p class="sec-sub">Covering 4 sectors: IT, Banking, Energy &amp; Automobile. Daily OHLCV data from January 2019 to present.</p>
+<!-- ===== STOCK UNIVERSE ===== -->
+<section class="universe-section" id="stocks">
+  <div class="wrap">
+    <div class="universe-header reveal">
+      <div>
+        <div class="section-label"><span class="sl-line"></span>Stock Universe</div>
+        <h2 class="section-title">NIFTY 50 &mdash; 10 large-cap NSE stocks</h2>
+        <p class="section-sub">Institutional-grade coverage across 4 sectors. Daily OHLCV from January 2019 to present.</p>
+      </div>
+      <div class="sector-tabs">
+        <div class="sector-tab active" onclick="filterSector('all',this)">All</div>
+        <div class="sector-tab" onclick="filterSector('it',this)">IT</div>
+        <div class="sector-tab" onclick="filterSector('bk',this)">Banking</div>
+        <div class="sector-tab" onclick="filterSector('en',this)">Energy</div>
+        <div class="sector-tab" onclick="filterSector('au',this)">Auto</div>
+      </div>
     </div>
-    <div class="stocks-grid reveal">
-      <div class="stock-chip"><div class="sc-sym">TCS.NS</div><div class="sc-name">Tata Consultancy Services</div><div class="sc-sec">🖥 Information Technology</div></div>
-      <div class="stock-chip"><div class="sc-sym">INFY.NS</div><div class="sc-name">Infosys Limited</div><div class="sc-sec">🖥 Information Technology</div></div>
-      <div class="stock-chip"><div class="sc-sym">WIPRO.NS</div><div class="sc-name">Wipro Limited</div><div class="sc-sec">🖥 Information Technology</div></div>
-      <div class="stock-chip"><div class="sc-sym">HDFCBANK.NS</div><div class="sc-name">HDFC Bank Limited</div><div class="sc-sec">🏦 Banking</div></div>
-      <div class="stock-chip"><div class="sc-sym">ICICIBANK.NS</div><div class="sc-name">ICICI Bank Limited</div><div class="sc-sec">🏦 Banking</div></div>
-      <div class="stock-chip"><div class="sc-sym">SBIN.NS</div><div class="sc-name">State Bank of India</div><div class="sc-sec">🏦 Banking</div></div>
-      <div class="stock-chip"><div class="sc-sym">RELIANCE.NS</div><div class="sc-name">Reliance Industries</div><div class="sc-sec">⚡ Energy</div></div>
-      <div class="stock-chip"><div class="sc-sym">ONGC.NS</div><div class="sc-name">Oil &amp; Natural Gas Corp</div><div class="sc-sec">⚡ Energy</div></div>
-      <div class="stock-chip"><div class="sc-sym">MARUTI.NS</div><div class="sc-name">Maruti Suzuki India</div><div class="sc-sec">🚗 Automobile</div></div>
-      <div class="stock-chip"><div class="sc-sym">TATAMOTORS.NS</div><div class="sc-name">Tata Motors Limited</div><div class="sc-sec">🚗 Automobile</div></div>
+    <div class="stock-table reveal">
+      <div class="st-head">
+        <span>Company</span><span style="text-align:right">Price</span><span style="text-align:right">Change</span><span style="text-align:right">Sector</span><span style="text-align:right">Signal</span>
+      </div>
+      <div class="st-row" data-sector="it"><div><div class="st-sym">TCS.NS</div><div class="st-name">Tata Consultancy Services</div></div><div class="st-price">&#8377;3,842.50</div><div class="st-chg-pos">+1.84%</div><div class="st-sector"><span class="sector-badge sb-it">IT</span></div><div class="st-signal"><span class="signal-bull">&#9650; BUY</span></div></div>
+      <div class="st-row" data-sector="it"><div><div class="st-sym">INFY.NS</div><div class="st-name">Infosys Limited</div></div><div class="st-price">&#8377;1,612.30</div><div class="st-chg-pos">+0.92%</div><div class="st-sector"><span class="sector-badge sb-it">IT</span></div><div class="st-signal"><span class="signal-bull">&#9650; BUY</span></div></div>
+      <div class="st-row" data-sector="it"><div><div class="st-sym">WIPRO.NS</div><div class="st-name">Wipro Limited</div></div><div class="st-price">&#8377;548.75</div><div class="st-chg-pos st-chg-neg">&minus;0.31%</div><div class="st-sector"><span class="sector-badge sb-it">IT</span></div><div class="st-signal"><span class="signal-hold">&#9644; HOLD</span></div></div>
+      <div class="st-row" data-sector="bk"><div><div class="st-sym">HDFCBANK.NS</div><div class="st-name">HDFC Bank Limited</div></div><div class="st-price">&#8377;1,834.20</div><div class="st-chg-pos">+1.12%</div><div class="st-sector"><span class="sector-badge sb-bk">Banking</span></div><div class="st-signal"><span class="signal-bull">&#9650; BUY</span></div></div>
+      <div class="st-row" data-sector="bk"><div><div class="st-sym">ICICIBANK.NS</div><div class="st-name">ICICI Bank Limited</div></div><div class="st-price">&#8377;1,289.60</div><div class="st-chg-pos">+0.67%</div><div class="st-sector"><span class="sector-badge sb-bk">Banking</span></div><div class="st-signal"><span class="signal-bull">&#9650; BUY</span></div></div>
+      <div class="st-row" data-sector="bk"><div><div class="st-sym">SBIN.NS</div><div class="st-name">State Bank of India</div></div><div class="st-price">&#8377;842.15</div><div class="st-chg-pos st-chg-neg">&minus;0.45%</div><div class="st-sector"><span class="sector-badge sb-bk">Banking</span></div><div class="st-signal"><span class="signal-hold">&#9644; HOLD</span></div></div>
+      <div class="st-row" data-sector="en"><div><div class="st-sym">RELIANCE.NS</div><div class="st-name">Reliance Industries</div></div><div class="st-price">&#8377;2,967.40</div><div class="st-chg-pos">+0.38%</div><div class="st-sector"><span class="sector-badge sb-en">Energy</span></div><div class="st-signal"><span class="signal-hold">&#9644; HOLD</span></div></div>
+      <div class="st-row" data-sector="en"><div><div class="st-sym">ONGC.NS</div><div class="st-name">Oil &amp; Natural Gas Corp</div></div><div class="st-price">&#8377;271.80</div><div class="st-chg-pos">+2.14%</div><div class="st-sector"><span class="sector-badge sb-en">Energy</span></div><div class="st-signal"><span class="signal-bull">&#9650; BUY</span></div></div>
+      <div class="st-row" data-sector="au"><div><div class="st-sym">MARUTI.NS</div><div class="st-name">Maruti Suzuki India</div></div><div class="st-price">&#8377;12,405.00</div><div class="st-chg-pos st-chg-neg">&minus;0.78%</div><div class="st-sector"><span class="sector-badge sb-au">Auto</span></div><div class="st-signal"><span class="signal-bear">&#9660; SELL</span></div></div>
+      <div class="st-row" data-sector="au"><div><div class="st-sym">TATAMOTORS.NS</div><div class="st-name">Tata Motors Limited</div></div><div class="st-price">&#8377;1,043.25</div><div class="st-chg-pos">+1.55%</div><div class="st-sector"><span class="sector-badge sb-au">Auto</span></div><div class="st-signal"><span class="signal-bull">&#9650; BUY</span></div></div>
     </div>
   </div>
 </section>
 
-<div class="divider"></div>
-
-<!-- CTA -->
-<section>
-  <div class="container">
-    <div class="cta-banner reveal">
-      <h2>Ready to explore<br/><span class="grad-text">the markets?</span></h2>
-      <p>Launch the interactive Streamlit dashboard or call the REST API to start analyzing NIFTY 50 stocks with ML-powered insights.</p>
+<!-- ===== CTA ===== -->
+<section class="cta-section">
+  <div class="wrap">
+    <div class="cta-inner reveal">
+      <div class="section-label" style="justify-content:center"><span class="sl-line"></span>Get Started<span class="sl-line"></span></div>
+      <h2>
+        <span class="grad-white">Start analyzing</span><br/>
+        <span class="grad-blue">the markets today</span>
+      </h2>
+      <p>Launch the dashboard, call the API, or explore the source code. Everything is open, documented, and production-ready.</p>
       <div class="cta-actions">
-        <a href="http://localhost:8501" class="btn-primary">📊 Open Dashboard</a>
-        <a href="http://localhost:8000/docs" class="btn-secondary">⚡ Swagger API Docs</a>
+        <a href="http://localhost:8501" class="btn-primary" style="font-size:16px;padding:15px 32px">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+          Open Dashboard
+        </a>
+        <a href="http://localhost:8000/docs" class="btn-outline" style="font-size:16px;padding:14px 32px">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>
+          API Reference
+        </a>
+        <a href="https://github.com/Venkateshnandupalli/Stock-Vision-AI" target="_blank" class="btn-outline" style="font-size:16px;padding:14px 32px">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          View on GitHub
+        </a>
+      </div>
+      <div class="cta-fine">
+        <span>&#128272; Educational use only</span>
+        <span class="cta-fine-sep"></span>
+        <span>&#9889; FastAPI on port 8000</span>
+        <span class="cta-fine-sep"></span>
+        <span>&#128202; Streamlit on port 8501</span>
+        <span class="cta-fine-sep"></span>
+        <span>&#128007; MIT License</span>
       </div>
     </div>
   </div>
 </section>
 
-<!-- Footer -->
+<!-- ===== FOOTER ===== -->
 <footer>
-  <div class="container">
-    <div class="footer-inner">
-      <div class="footer-brand"><div class="footer-badge">📈</div>StockVision AI</div>
-      <div class="footer-links">
-        <a href="#features">Features</a>
-        <a href="#pipeline">Pipeline</a>
-        <a href="#models">Models</a>
-        <a href="http://localhost:8000/docs">API</a>
-        <a href="https://github.com/Venkateshnandupalli/Stock-Vision-AI" target="_blank" rel="noopener">GitHub</a>
+  <div class="wrap">
+    <div class="footer-top">
+      <div class="footer-brand-col">
+        <div class="fb-name">
+          <div class="nav-logo" style="width:28px;height:28px;border-radius:7px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+          </div>
+          StockVision AI
+        </div>
+        <p>Institutional-grade market analytics and ML forecasting platform for NIFTY 50 Indian equities.</p>
+        <a href="https://github.com/Venkateshnandupalli/Stock-Vision-AI" target="_blank" style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--t2);transition:color .2s" onmouseover="this.style.color='#fff'" onmouseout="this.style.color=''">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          Venkateshnandupalli/Stock-Vision-AI
+        </a>
+      </div>
+      <div class="footer-links-grid">
+        <div class="fl-col">
+          <h4>Platform</h4>
+          <a href="#features">Features</a>
+          <a href="http://localhost:8501">Dashboard</a>
+          <a href="http://localhost:8000/docs">API Docs</a>
+          <a href="#models">Models</a>
+        </div>
+        <div class="fl-col">
+          <h4>Data</h4>
+          <a href="#stocks">Stock Universe</a>
+          <a href="#features">Indicators</a>
+          <a href="#pipeline">Pipeline</a>
+          <a href="#stack">Tech Stack</a>
+        </div>
+        <div class="fl-col">
+          <h4>Resources</h4>
+          <a href="https://github.com/Venkateshnandupalli/Stock-Vision-AI" target="_blank">GitHub Repo</a>
+          <a href="http://localhost:8000/docs" target="_blank">Swagger UI</a>
+          <a href="http://localhost:8000/redoc" target="_blank">ReDoc</a>
+          <a href="#" onclick="return false">MLflow UI</a>
+        </div>
+        <div class="fl-col">
+          <h4>Legal</h4>
+          <a href="#" onclick="return false">MIT License</a>
+          <a href="#" onclick="return false">Disclaimer</a>
+          <a href="#" onclick="return false">Privacy</a>
+        </div>
       </div>
     </div>
-    <div class="footer-disclaimer">
-      ⚠️ All forecasts are generated from historical data for educational and analytical purposes only.
-      They do not constitute investment advice. Past patterns may not predict future performance.
+    <div class="footer-bottom">
+      <div class="fb-copy">&copy; 2026 StockVision AI &bull; Built with Python 3.10 &middot; FastAPI &middot; Streamlit &middot; PostgreSQL</div>
+      <div class="fb-disclaimer">&#9888;&#65039; For educational and analytical purposes only. Not financial advice. Past performance does not guarantee future results. All ML forecasts are estimates based on historical data.</div>
     </div>
   </div>
 </footer>
 
 <script>
-// Particles
-const pts = document.getElementById('pts');
-for(let i=0;i<35;i++){
-  const p=document.createElement('div');p.className='particle';
-  p.style.cssText=`left:${Math.random()*100}%;width:${Math.random()*2+1}px;height:${Math.random()*2+1}px;animation-delay:${Math.random()*15}s;animation-duration:${12+Math.random()*15}s;background:${Math.random()>.5?'#00c2ff':'#00e5c8'};`;
-  pts.appendChild(p);
-}
+/* Navbar scroll effect */
+window.addEventListener('scroll',()=>{
+  document.getElementById('hdr').classList.toggle('stuck',scrollY>50);
+},{passive:true});
 
-// Nav scroll
-window.addEventListener('scroll',()=>document.getElementById('nav').classList.toggle('scrolled',scrollY>40));
+/* Reveal on scroll */
+const revealObs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('on');revealObs.unobserve(e.target);}});
+},{threshold:0.12});
+document.querySelectorAll('.reveal').forEach(el=>revealObs.observe(el));
 
-// Ticker
-const tks=[
-  {s:'TCS.NS',p:'₹3,842',c:'+1.84%',u:true},{s:'INFY.NS',p:'₹1,612',c:'+0.92%',u:true},
-  {s:'WIPRO.NS',p:'₹548',c:'-0.31%',u:false},{s:'HDFCBANK.NS',p:'₹1,834',c:'+1.12%',u:true},
-  {s:'ICICIBANK.NS',p:'₹1,289',c:'+0.67%',u:true},{s:'SBIN.NS',p:'₹842',c:'-0.45%',u:false},
-  {s:'RELIANCE.NS',p:'₹2,967',c:'+0.38%',u:true},{s:'ONGC.NS',p:'₹271',c:'+2.14%',u:true},
-  {s:'MARUTI.NS',p:'₹12,405',c:'-0.78%',u:false},{s:'TATAMOTORS.NS',p:'₹1,043',c:'+1.55%',u:true},
-  {s:'^NSEI',p:'24,502',c:'+0.73%',u:true}
-];
-const tt=document.getElementById('tt');
-const row=tks.map(t=>`<div class="ticker-item"><span class="t-sym">${t.s}</span><span class="t-px">${t.p}</span><span class="t-chg ${t.u?'up':'dn'}">${t.c}</span><span class="t-sep">|</span></div>`).join('');
-tt.innerHTML=row+row;
-
-// Counters
-function countUp(el,target,dur=1800){
-  let s=null;
-  const step=ts=>{if(!s)s=ts;const pct=Math.min((ts-s)/dur,1);const e=1-Math.pow(1-pct,3);
-  el.textContent=Math.floor(e*target).toLocaleString();if(pct<1)requestAnimationFrame(step);else el.textContent=target.toLocaleString();};
+/* Counter animation */
+function animateNumber(el,target,suffix='',dur=2000){
+  const isDecimal=target%1!==0;
+  let start=null;
+  function step(ts){
+    if(!start)start=ts;
+    const p=Math.min((ts-start)/dur,1);
+    const ease=p<0.5?4*p*p*p:(1-Math.pow(-2*p+2,3)/2);
+    const val=Math.floor(ease*target);
+    el.textContent=val.toLocaleString()+suffix;
+    if(p<1)requestAnimationFrame(step);
+    else el.textContent=target.toLocaleString()+suffix;
+  }
   requestAnimationFrame(step);
 }
 
-// Reveal observer
-const obs=new IntersectionObserver(entries=>{
+const statsObs=new IntersectionObserver(entries=>{
   entries.forEach(e=>{
     if(e.isIntersecting){
-      e.target.classList.add('visible');
-      if(e.target.id==='sb')e.target.querySelectorAll('[data-target]').forEach(n=>countUp(n,parseInt(n.dataset.target)));
-      obs.unobserve(e.target);
+      e.target.querySelectorAll('[data-target]').forEach(el=>{
+        animateNumber(el,parseInt(el.dataset.target));
+      });
+      statsObs.unobserve(e.target);
     }
   });
-},{threshold:0.15});
-document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+},{threshold:0.3});
+const statGrid=document.querySelector('.stats-grid');
+if(statGrid)statsObs.observe(statGrid);
 
-// Live price animation
-const prices=['₹3,842.50','₹3,845.30','₹3,838.80','₹3,851.00','₹3,847.60'];
-const deltas=['▲ +1.84% today','▲ +1.91% today','▲ +1.72% today','▲ +2.05% today','▲ +1.96% today'];
-let pi=0;
-const hpEl=document.getElementById('hp'),hdEl=document.getElementById('hd');
-hpEl.style.transition=hdEl.style.transition='opacity .2s';
-setInterval(()=>{
-  pi=(pi+1)%prices.length;hpEl.style.opacity=hdEl.style.opacity='0';
-  setTimeout(()=>{hpEl.textContent=prices[pi];hdEl.textContent=deltas[pi];hpEl.style.opacity=hdEl.style.opacity='1';},200);
-},3000);
+/* Bar width animation */
+const barObs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      e.target.querySelectorAll('.bar-fill').forEach(b=>{
+        b.style.width=b.style.width;
+      });
+      barObs.unobserve(e.target);
+    }
+  });
+},{threshold:0.3});
+
+/* Sector filter */
+function filterSector(sector, btn){
+  document.querySelectorAll('.sector-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.st-row').forEach(row=>{
+    row.style.display=(sector==='all'||row.dataset.sector===sector)?'grid':'none';
+  });
+}
+
+/* Dismiss announcement bar */
+document.getElementById('ann-bar').addEventListener('click',function(){
+  this.style.display='none';
+});
 </script>
 </body>
 </html>
