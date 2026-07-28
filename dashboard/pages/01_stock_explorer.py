@@ -22,16 +22,37 @@ st.set_page_config(page_title="Stock Explorer | StockVision AI", page_icon="📊
 
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&family=Inter:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&family=Inter:wght@300;400;500;600&display=swap');
 
-    html, body, [class*="css"] { font-family: 'Inter', sans-serif; background: #030712; color: #e2e8f0; }
-    #MainMenu, footer, header { visibility: hidden; }
-    .block-container { padding-top: 1rem !important; max-width: 1440px; }
+html, body, [class*="css"] { font-family: 'Inter', sans-serif; background: #030712; color: #e2e8f0; }
+#MainMenu, footer, header { visibility: hidden; }
+.block-container { padding-top: 1rem !important; max-width: 1440px; }
 
-    [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #030712, #060e1c) !important;
-        border-right: 1px solid rgba(0,245,255,0.08) !important;
-    }
+[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, #030712, #060e1c) !important;
+    border-right: 1px solid rgba(0,245,255,0.08) !important;
+}
+
+[data-testid="stSidebarNav"] a {
+    display: flex !important; align-items: center !important;
+    padding: 9px 12px !important; border-radius: 10px !important;
+    font-size: 0.84rem !important; font-family: 'Inter', sans-serif !important;
+    color: #4a6080 !important; text-decoration: none !important;
+    transition: all 0.22s ease !important; border: 1px solid transparent !important;
+    margin-bottom: 2px !important;
+}
+[data-testid="stSidebarNav"] a:hover {
+    background: rgba(0,245,255,0.06) !important;
+    border-color: rgba(0,245,255,0.12) !important;
+    color: #00f5ff !important;
+}
+[data-testid="stSidebarNav"] a[aria-current="page"] {
+    background: rgba(0,245,255,0.09) !important;
+    border-color: rgba(0,245,255,0.18) !important;
+    color: #00f5ff !important; font-weight: 600 !important;
+    box-shadow: 0 0 18px rgba(0,245,255,0.07) !important;
+}
+[data-testid="stSidebarNav"] span { color: inherit !important; font-weight: inherit !important; }
 
     .page-header {
         background: radial-gradient(ellipse at 80% 30%, rgba(0,245,255,0.08) 0%, transparent 55%),

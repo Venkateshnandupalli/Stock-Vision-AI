@@ -28,6 +28,27 @@ st.markdown("""
         border-right: 1px solid rgba(124,58,237,0.1) !important;
     }
 
+    [data-testid="stSidebarNav"] a {
+        display: flex !important; align-items: center !important;
+        padding: 9px 12px !important; border-radius: 10px !important;
+        font-size: 0.84rem !important; font-family: 'Inter', sans-serif !important;
+        color: #4a6080 !important; text-decoration: none !important;
+        transition: all 0.22s ease !important; border: 1px solid transparent !important;
+        margin-bottom: 2px !important;
+    }
+    [data-testid="stSidebarNav"] a:hover {
+        background: rgba(124,58,237,0.07) !important;
+        border-color: rgba(124,58,237,0.15) !important;
+        color: #a78bfa !important;
+    }
+    [data-testid="stSidebarNav"] a[aria-current="page"] {
+        background: rgba(124,58,237,0.1) !important;
+        border-color: rgba(124,58,237,0.22) !important;
+        color: #a78bfa !important; font-weight: 600 !important;
+        box-shadow: 0 0 18px rgba(124,58,237,0.08) !important;
+    }
+    [data-testid="stSidebarNav"] span { color: inherit !important; font-weight: inherit !important; }
+
     .page-header {
         background: radial-gradient(ellipse at 70% 30%, rgba(124,58,237,0.15) 0%, transparent 55%),
                     rgba(255,255,255,0.02);

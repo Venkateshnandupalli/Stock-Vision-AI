@@ -361,6 +361,56 @@ st.markdown("""
         border-right: 1px solid rgba(0,245,255,0.08) !important;
     }
 
+    /* Style Streamlit's native page navigation links */
+    [data-testid="stSidebarNav"] {
+        padding-top: 0.5rem;
+    }
+
+    [data-testid="stSidebarNav"] ul {
+        padding-left: 0 !important;
+        list-style: none !important;
+    }
+
+    [data-testid="stSidebarNav"] a {
+        display: flex !important;
+        align-items: center !important;
+        padding: 9px 12px !important;
+        border-radius: 10px !important;
+        font-size: 0.84rem !important;
+        font-family: 'Inter', sans-serif !important;
+        color: #4a6080 !important;
+        text-decoration: none !important;
+        transition: all 0.22s ease !important;
+        border: 1px solid transparent !important;
+        margin-bottom: 2px !important;
+    }
+
+    [data-testid="stSidebarNav"] a:hover {
+        background: rgba(0,245,255,0.06) !important;
+        border-color: rgba(0,245,255,0.12) !important;
+        color: #00f5ff !important;
+    }
+
+    [data-testid="stSidebarNav"] a[aria-current="page"] {
+        background: rgba(0,245,255,0.09) !important;
+        border-color: rgba(0,245,255,0.18) !important;
+        color: #00f5ff !important;
+        font-weight: 600 !important;
+        box-shadow: 0 0 18px rgba(0,245,255,0.07) !important;
+    }
+
+    [data-testid="stSidebarNav"] span {
+        color: inherit !important;
+        font-weight: inherit !important;
+    }
+
+    /* Nav section label */
+    .nav-sec-label {
+        font-size: 0.6rem; font-weight: 700; text-transform: uppercase;
+        letter-spacing: 1.5px; color: #1e3048;
+        margin: 0.6rem 0 0.4rem 0.2rem;
+    }
+
     .sb-logo {
         font-family: 'Syne', sans-serif; font-size: 1.4rem; font-weight: 800;
         background: linear-gradient(90deg, #00f5ff, #7c3aed);
@@ -370,23 +420,6 @@ st.markdown("""
     }
 
     .sb-tagline { font-size: 0.65rem; color: #2d4560; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600; }
-
-    .nav-sec { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: #1e3048 !important; margin: 1.2rem 0 0.5rem; }
-
-    .nav-item {
-        display: flex; align-items: center; gap: 10px;
-        padding: 9px 12px; border-radius: 10px;
-        font-size: 0.84rem; color: #4a6080 !important;
-        margin-bottom: 2px; transition: all 0.2s ease;
-        border: 1px solid transparent;
-    }
-
-    .nav-item.active {
-        background: rgba(0,245,255,0.08);
-        border-color: rgba(0,245,255,0.15);
-        color: #00f5ff !important; font-weight: 600;
-        box-shadow: 0 0 16px rgba(0,245,255,0.06);
-    }
 
     .sb-info {
         background: rgba(0,245,255,0.03);
@@ -745,27 +778,22 @@ def render_home():
 # ── Sidebar ────────────────────────────────────────────────────────────────
 
 with st.sidebar:
+    # ── Brand logo ────────────────────────────────────────────────────────
     st.markdown("""
     <span class="sb-logo">📈 StockVision</span>
     <span class="sb-tagline">AI Market Analytics Platform</span>
     """, unsafe_allow_html=True)
 
-    st.markdown('<div class="h-div" style="margin:0.8rem 0;"></div>', unsafe_allow_html=True)
-    st.markdown('<div class="nav-sec">Navigation</div>', unsafe_allow_html=True)
+    st.markdown('<div class="h-div" style="margin:0.6rem 0 0 0;"></div>', unsafe_allow_html=True)
 
-    nav_items = [
-        ("🏠", "Home",             True),
-        ("📊", "Stock Explorer",   False),
-        ("🔮", "Forecast Centre",  False),
-        ("🧪", "Model Laboratory", False),
-        ("🔍", "Data Quality",     False),
-    ]
-    for icon, label, active in nav_items:
-        cls = "nav-item active" if active else "nav-item"
-        st.markdown(f'<div class="{cls}">{icon}&nbsp;&nbsp;{label}</div>', unsafe_allow_html=True)
+    # ── Navigation label (Streamlit renders the actual links natively above this) ──
+    st.markdown('<div class="nav-sec-label">Navigation</div>', unsafe_allow_html=True)
 
-    st.markdown('<div class="h-div" style="margin:0.8rem 0;"></div>', unsafe_allow_html=True)
-    st.markdown('<div class="nav-sec">Platform Info</div>', unsafe_allow_html=True)
+    # Streamlit's built-in multi-page nav links are rendered automatically here
+    # The CSS above styles them to match the neon theme
+
+    st.markdown('<div class="h-div" style="margin:0.6rem 0;"></div>', unsafe_allow_html=True)
+    st.markdown('<div class="nav-sec-label">Platform Info</div>', unsafe_allow_html=True)
 
     st.markdown(f"""
     <div class="sb-info">

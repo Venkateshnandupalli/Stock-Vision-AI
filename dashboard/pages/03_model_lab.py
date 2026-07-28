@@ -26,6 +26,27 @@ st.markdown("""
         border-right: 1px solid rgba(0,255,136,0.08) !important;
     }
 
+    [data-testid="stSidebarNav"] a {
+        display: flex !important; align-items: center !important;
+        padding: 9px 12px !important; border-radius: 10px !important;
+        font-size: 0.84rem !important; font-family: 'Inter', sans-serif !important;
+        color: #4a6080 !important; text-decoration: none !important;
+        transition: all 0.22s ease !important; border: 1px solid transparent !important;
+        margin-bottom: 2px !important;
+    }
+    [data-testid="stSidebarNav"] a:hover {
+        background: rgba(0,255,136,0.05) !important;
+        border-color: rgba(0,255,136,0.12) !important;
+        color: #00ff88 !important;
+    }
+    [data-testid="stSidebarNav"] a[aria-current="page"] {
+        background: rgba(0,255,136,0.08) !important;
+        border-color: rgba(0,255,136,0.2) !important;
+        color: #00ff88 !important; font-weight: 600 !important;
+        box-shadow: 0 0 18px rgba(0,255,136,0.07) !important;
+    }
+    [data-testid="stSidebarNav"] span { color: inherit !important; font-weight: inherit !important; }
+
     .page-header {
         background: radial-gradient(ellipse at 60% 30%, rgba(0,255,136,0.08) 0%, transparent 55%),
                     rgba(255,255,255,0.02);
