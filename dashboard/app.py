@@ -1,6 +1,6 @@
 """
-StockVision AI — Streamlit Dashboard
-======================================
+StockVision AI — Streamlit Dashboard (Premium 3D Edition)
+==========================================================
 Multi-page interactive data application.
 Pages:
   1. Home — Market overview and latest status
@@ -22,7 +22,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
-import plotly.express as px
+import numpy as np
 from datetime import datetime, timedelta
 
 from src.utils.config import (
@@ -48,316 +48,367 @@ st.set_page_config(
     },
 )
 
-# ── Custom CSS ─────────────────────────────────────────────────────────────
+# ── Premium 3D CSS ─────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600&display=swap');
 
     /* ── Global Reset ── */
     html, body, [class*="css"] {
         font-family: 'Inter', sans-serif;
-        background-color: #060d18;
+        background-color: #030712;
         color: #e2e8f0;
     }
 
     .block-container {
-        padding-top: 1rem !important;
+        padding-top: 0.5rem !important;
         padding-bottom: 2rem !important;
-        max-width: 1400px;
+        max-width: 1440px;
     }
 
-    /* ── Hide Streamlit default chrome ── */
+    /* ── Hide Streamlit chrome ── */
     #MainMenu, footer, header { visibility: hidden; }
     .stDeployButton { display: none; }
 
-    /* ── Custom Scrollbar ── */
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: #0d1b2a; }
-    ::-webkit-scrollbar-thumb { background: #2a4a6b; border-radius: 10px; }
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: #030712; }
+    ::-webkit-scrollbar-thumb { background: linear-gradient(180deg,#00f5ff,#7c3aed); border-radius: 10px; }
 
-    /* ── Hero ── */
-    .hero-container {
-        background: linear-gradient(135deg, #0a1628 0%, #0d2137 40%, #0a1f35 70%, #071220 100%);
-        border: 1px solid rgba(56, 139, 253, 0.15);
-        border-radius: 24px;
-        padding: 3rem 3.5rem 2.5rem;
-        margin-bottom: 2rem;
+    /* ── Animated Hero ── */
+    .hero-wrap {
         position: relative;
+        border-radius: 28px;
         overflow: hidden;
+        margin-bottom: 2rem;
+        padding: 3.5rem 4rem 3rem;
+        background: radial-gradient(ellipse at 70% 20%, rgba(124,58,237,0.18) 0%, transparent 55%),
+                    radial-gradient(ellipse at 10% 80%, rgba(0,245,255,0.12) 0%, transparent 50%),
+                    linear-gradient(135deg, #050b18 0%, #0a1020 60%, #060e1c 100%);
+        border: 1px solid rgba(0,245,255,0.12);
     }
 
-    .hero-container::before {
+    /* Animated grid overlay */
+    .hero-wrap::before {
         content: '';
-        position: absolute;
-        top: -60%;
-        right: -10%;
-        width: 500px;
-        height: 500px;
-        background: radial-gradient(circle, rgba(56,139,253,0.08) 0%, transparent 70%);
+        position: absolute; inset: 0;
+        background-image:
+            linear-gradient(rgba(0,245,255,0.035) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0,245,255,0.035) 1px, transparent 1px);
+        background-size: 48px 48px;
+        animation: gridMove 8s linear infinite;
         pointer-events: none;
     }
 
-    .hero-container::after {
+    @keyframes gridMove {
+        0%   { background-position: 0 0; }
+        100% { background-position: 48px 48px; }
+    }
+
+    /* Floating neon orbs */
+    .hero-wrap::after {
         content: '';
         position: absolute;
-        bottom: -40%;
-        left: -5%;
-        width: 400px;
-        height: 400px;
-        background: radial-gradient(circle, rgba(0,210,180,0.05) 0%, transparent 70%);
+        width: 360px; height: 360px;
+        top: -100px; right: -80px;
+        background: radial-gradient(circle, rgba(124,58,237,0.25) 0%, transparent 65%);
+        border-radius: 50%;
+        animation: orbFloat 6s ease-in-out infinite alternate;
         pointer-events: none;
+    }
+
+    @keyframes orbFloat {
+        0%   { transform: translate(0,0) scale(1); }
+        100% { transform: translate(20px,-20px) scale(1.1); }
     }
 
     .hero-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        background: rgba(56,139,253,0.12);
-        border: 1px solid rgba(56,139,253,0.3);
-        border-radius: 100px;
-        padding: 4px 14px;
-        font-size: 0.75rem;
-        font-weight: 600;
-        color: #58a6ff;
-        letter-spacing: 0.5px;
-        text-transform: uppercase;
-        margin-bottom: 1.2rem;
+        display: inline-flex; align-items: center; gap: 8px;
+        background: rgba(0,245,255,0.08);
+        border: 1px solid rgba(0,245,255,0.25);
+        border-radius: 100px; padding: 5px 16px;
+        font-size: 0.72rem; font-weight: 700; color: #00f5ff;
+        letter-spacing: 1.5px; text-transform: uppercase;
+        margin-bottom: 1.4rem;
+        box-shadow: 0 0 16px rgba(0,245,255,0.12);
+        position: relative; z-index: 1;
     }
 
     .hero-title {
-        font-family: 'Space Grotesk', sans-serif;
-        font-size: 3rem;
-        font-weight: 700;
-        color: #f0f6ff;
-        line-height: 1.15;
-        margin: 0 0 0.8rem 0;
-        letter-spacing: -1px;
+        font-family: 'Syne', sans-serif;
+        font-size: 3.4rem; font-weight: 800;
+        color: #f8fafc; line-height: 1.1;
+        margin: 0 0 1rem 0; letter-spacing: -1.5px;
+        position: relative; z-index: 1;
     }
 
-    .hero-title span {
-        background: linear-gradient(135deg, #388bfd 0%, #00d2b4 100%);
+    .hero-title .glow-text {
+        background: linear-gradient(90deg, #00f5ff 0%, #7c3aed 50%, #00ff88 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
+        filter: drop-shadow(0 0 20px rgba(0,245,255,0.4));
+        animation: shimmer 3s ease-in-out infinite;
+        background-size: 200% auto;
+    }
+
+    @keyframes shimmer {
+        0%   { background-position: 0% center; }
+        50%  { background-position: 100% center; }
+        100% { background-position: 0% center; }
     }
 
     .hero-subtitle {
-        font-size: 1.05rem;
-        color: #8b9fbe;
-        max-width: 620px;
-        line-height: 1.7;
-        margin: 0 0 1.2rem 0;
+        font-size: 1.05rem; color: #7d8fa8;
+        max-width: 600px; line-height: 1.75;
+        margin: 0 0 1.5rem 0;
+        position: relative; z-index: 1;
+    }
+
+    .live-pill {
+        display: inline-flex; align-items: center; gap: 8px;
+        background: rgba(0,255,136,0.07);
+        border: 1px solid rgba(0,255,136,0.2);
+        border-radius: 100px; padding: 5px 14px;
+        font-size: 0.75rem; color: #00ff88; font-weight: 600;
+        position: relative; z-index: 1;
+        box-shadow: 0 0 12px rgba(0,255,136,0.1);
+    }
+
+    .pulse-ring {
+        width: 8px; height: 8px;
+        background: #00ff88; border-radius: 50%;
+        box-shadow: 0 0 0 0 rgba(0,255,136,0.5);
+        animation: ringPulse 1.8s ease-in-out infinite;
+    }
+
+    @keyframes ringPulse {
+        0%   { box-shadow: 0 0 0 0   rgba(0,255,136,0.5); }
+        70%  { box-shadow: 0 0 0 8px rgba(0,255,136,0); }
+        100% { box-shadow: 0 0 0 0   rgba(0,255,136,0); }
     }
 
     .hero-stats {
-        display: flex;
-        gap: 2.5rem;
-        flex-wrap: wrap;
-        margin-top: 1.5rem;
-        padding-top: 1.5rem;
-        border-top: 1px solid rgba(255,255,255,0.07);
+        display: flex; gap: 3rem; flex-wrap: wrap;
+        margin-top: 2rem; padding-top: 2rem;
+        border-top: 1px solid rgba(255,255,255,0.05);
+        position: relative; z-index: 1;
     }
 
-    .hero-stat-value {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: #e2e8f0;
-        font-family: 'Space Grotesk', sans-serif;
-        display: block;
+    .h-stat-val {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 1.8rem; font-weight: 700; color: #f8fafc;
+        display: block; line-height: 1;
     }
 
-    .hero-stat-label {
-        font-size: 0.75rem;
-        color: #5c7a9e;
-        text-transform: uppercase;
-        letter-spacing: 0.8px;
-        font-weight: 500;
+    .h-stat-label {
+        font-size: 0.68rem; color: #4a6080;
+        text-transform: uppercase; letter-spacing: 1px; font-weight: 600;
+        margin-top: 4px; display: block;
     }
 
-    /* ── Pulse dot ── */
-    .live-row {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 0.78rem;
-        color: #5c7a9e;
+    /* ── Glass KPI cards ── */
+    .kpi-glass {
+        background: rgba(255,255,255,0.03);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-radius: 20px;
+        padding: 1.6rem 1.8rem;
+        border: 1px solid rgba(255,255,255,0.07);
+        position: relative; overflow: hidden;
+        transition: all 0.35s cubic-bezier(0.4,0,0.2,1);
         margin-bottom: 0;
     }
 
-    .pulse-dot {
-        width: 8px;
-        height: 8px;
-        background: #3fb950;
-        border-radius: 50%;
-        display: inline-block;
-        animation: pulse 2s ease-in-out infinite;
-        box-shadow: 0 0 0 0 rgba(63,185,80,0.4);
-    }
-
-    @keyframes pulse {
-        0%   { box-shadow: 0 0 0 0 rgba(63,185,80,0.4); }
-        70%  { box-shadow: 0 0 0 8px rgba(63,185,80,0); }
-        100% { box-shadow: 0 0 0 0 rgba(63,185,80,0); }
-    }
-
-    .live-text { color: #3fb950; font-weight: 600; }
-
-    /* ── Section headers ── */
-    .section-header-text {
-        font-family: 'Space Grotesk', sans-serif;
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: #c9d1d9;
-        margin: 0 0 0.5rem 0;
-    }
-
-    .section-divider {
-        height: 2px;
-        background: linear-gradient(90deg, rgba(56,139,253,0.5), transparent);
-        border-radius: 2px;
-        margin-bottom: 1.2rem;
-    }
-
-    /* ── KPI cards ── */
-    .kpi-card {
-        background: linear-gradient(145deg, #0d1b2a, #111f30);
-        border: 1px solid rgba(255,255,255,0.06);
-        border-radius: 16px;
-        padding: 1.4rem 1.6rem;
-        position: relative;
-        overflow: hidden;
-        transition: all 0.3s ease;
-        margin-bottom: 0;
-    }
-
-    .kpi-card::before {
+    .kpi-glass::before {
         content: '';
-        position: absolute;
-        top: 0; left: 0; right: 0;
-        height: 2px;
-        border-radius: 16px 16px 0 0;
+        position: absolute; top: 0; left: 0; right: 0;
+        height: 1px;
+        border-radius: 20px 20px 0 0;
     }
 
-    .kpi-card.blue::before   { background: linear-gradient(90deg,#388bfd,#58a6ff); }
-    .kpi-card.green::before  { background: linear-gradient(90deg,#3fb950,#56d364); }
-    .kpi-card.teal::before   { background: linear-gradient(90deg,#00d2b4,#00b4d8); }
-    .kpi-card.purple::before { background: linear-gradient(90deg,#bc8cff,#d29af5); }
+    .kpi-glass.cyan::before   { background: linear-gradient(90deg,#00f5ff,transparent); }
+    .kpi-glass.violet::before { background: linear-gradient(90deg,#7c3aed,transparent); }
+    .kpi-glass.green::before  { background: linear-gradient(90deg,#00ff88,transparent); }
+    .kpi-glass.orange::before { background: linear-gradient(90deg,#f59e0b,transparent); }
 
-    .kpi-card:hover {
-        border-color: rgba(56,139,253,0.25);
-        transform: translateY(-3px);
-        box-shadow: 0 12px 32px rgba(0,0,0,0.3);
+    .kpi-glass:hover {
+        background: rgba(255,255,255,0.055);
+        transform: translateY(-6px) scale(1.01);
+        box-shadow: 0 20px 60px rgba(0,0,0,0.5),
+                    0 0 40px rgba(0,245,255,0.06);
+        border-color: rgba(0,245,255,0.18);
     }
 
-    .kpi-icon  { font-size: 1.6rem; margin-bottom: 0.6rem; display: block; }
-    .kpi-value { font-family: 'Space Grotesk',sans-serif; font-size: 2rem; font-weight: 700; color: #e2e8f0; line-height: 1; margin-bottom: 0.3rem; }
-    .kpi-label { font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: #5c7a9e; }
-    .kpi-sub   { font-size: 0.73rem; color: #3c5775; margin-top: 3px; }
+    .kpi-glow-icon {
+        width: 52px; height: 52px; border-radius: 14px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.5rem; margin-bottom: 1rem;
+    }
+
+    .kpi-glow-icon.cyan   { background: rgba(0,245,255,0.1);  box-shadow: 0 0 20px rgba(0,245,255,0.15); }
+    .kpi-glow-icon.violet { background: rgba(124,58,237,0.12); box-shadow: 0 0 20px rgba(124,58,237,0.2); }
+    .kpi-glow-icon.green  { background: rgba(0,255,136,0.1);   box-shadow: 0 0 20px rgba(0,255,136,0.15); }
+    .kpi-glow-icon.orange { background: rgba(245,158,11,0.1);  box-shadow: 0 0 20px rgba(245,158,11,0.15); }
+
+    .kpi-val {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 2.2rem; font-weight: 700; color: #f8fafc;
+        line-height: 1; margin-bottom: 0.3rem; display: block;
+    }
+
+    .kpi-label { font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: #4a6080; }
+    .kpi-sub   { font-size: 0.72rem; color: #2d4560; margin-top: 4px; }
+
+    /* ── Section label ── */
+    .sec-label {
+        font-family: 'Syne', sans-serif;
+        font-size: 1.15rem; font-weight: 700; color: #e2e8f0;
+        margin: 0 0 0.4rem 0; display: flex; align-items: center; gap: 10px;
+    }
+
+    .sec-line {
+        height: 1px; flex: 1;
+        background: linear-gradient(90deg, rgba(0,245,255,0.3), transparent);
+    }
 
     /* ── Ticker cards ── */
-    .ticker-card {
-        background: linear-gradient(145deg,#0d1b2a,#0f2238);
+    .tick-card {
+        background: rgba(255,255,255,0.025);
+        backdrop-filter: blur(8px);
         border: 1px solid rgba(255,255,255,0.06);
-        border-radius: 14px;
-        padding: 1rem 1.2rem;
-        transition: all 0.25s ease;
-        height: 100%;
+        border-radius: 16px; padding: 1.1rem 1.3rem;
+        transition: all 0.3s ease; height: 100%;
+        position: relative; overflow: hidden;
     }
 
-    .ticker-card:hover {
-        border-color: rgba(56,139,253,0.3);
-        box-shadow: 0 8px 24px rgba(56,139,253,0.1);
-        transform: translateY(-2px);
+    .tick-card::after {
+        content: '';
+        position: absolute; bottom: 0; left: 0; right: 0; height: 1px;
+        background: transparent;
+        transition: background 0.3s ease;
     }
 
-    .ticker-symbol { font-size: 0.72rem; font-weight: 700; color: #388bfd; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
-    .ticker-name   { font-size: 0.72rem; color: #5c7a9e; margin-bottom: 0.5rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .ticker-price  { font-family: 'Space Grotesk',sans-serif; font-size: 1.25rem; font-weight: 700; color: #e2e8f0; margin-bottom: 4px; }
+    .tick-card:hover {
+        border-color: rgba(0,245,255,0.22);
+        transform: translateY(-4px);
+        box-shadow: 0 12px 40px rgba(0,0,0,0.5), 0 0 30px rgba(0,245,255,0.06);
+    }
 
-    .ticker-change       { font-size: 0.78rem; font-weight: 600; padding: 2px 8px; border-radius: 6px; display: inline-block; }
-    .change-up   { color: #3fb950; background: rgba(63,185,80,0.1); }
-    .change-down { color: #f85149; background: rgba(248,81,73,0.1); }
-    .change-flat { color: #8b9fbe; background: rgba(139,159,190,0.1); }
+    .tick-card:hover::after {
+        background: linear-gradient(90deg, #00f5ff, #7c3aed);
+    }
+
+    .tick-sym   { font-size: 0.68rem; font-weight: 800; color: #00f5ff; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 2px; }
+    .tick-name  { font-size: 0.7rem; color: #3d5268; margin-bottom: 0.6rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .tick-price { font-family: 'JetBrains Mono', monospace; font-size: 1.3rem; font-weight: 700; color: #f8fafc; margin-bottom: 5px; }
+
+    .chg-up   { font-size: 0.75rem; font-weight: 700; padding: 3px 9px; border-radius: 8px; display: inline-block; color: #00ff88; background: rgba(0,255,136,0.1); border: 1px solid rgba(0,255,136,0.2); }
+    .chg-down { font-size: 0.75rem; font-weight: 700; padding: 3px 9px; border-radius: 8px; display: inline-block; color: #ff4d6a; background: rgba(255,77,106,0.1); border: 1px solid rgba(255,77,106,0.2); }
+    .chg-flat { font-size: 0.75rem; font-weight: 700; padding: 3px 9px; border-radius: 8px; display: inline-block; color: #7d8fa8; background: rgba(125,143,168,0.08); border: 1px solid rgba(125,143,168,0.15); }
 
     /* ── Feature cards ── */
-    .feature-card {
-        background: linear-gradient(145deg,#0d1b2a,#0f2238);
+    .feat-card {
+        background: rgba(255,255,255,0.025);
+        backdrop-filter: blur(10px);
         border: 1px solid rgba(255,255,255,0.06);
-        border-radius: 16px;
-        padding: 1.5rem;
-        height: 100%;
-        transition: all 0.3s ease;
+        border-radius: 20px; padding: 1.8rem;
+        height: 100%; transition: all 0.35s ease; position: relative; overflow: hidden;
     }
 
-    .feature-card:hover {
-        border-color: rgba(56,139,253,0.25);
-        box-shadow: 0 16px 48px rgba(0,0,0,0.3);
-        transform: translateY(-4px);
+    .feat-card:hover {
+        border-color: rgba(0,245,255,0.2);
+        box-shadow: 0 24px 64px rgba(0,0,0,0.6), 0 0 40px rgba(0,245,255,0.05);
+        transform: translateY(-6px);
     }
 
-    .feature-icon  { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; margin-bottom: 1rem; }
-    .fi-blue       { background: rgba(56,139,253,0.15); }
-    .fi-green      { background: rgba(63,185,80,0.15); }
-    .fi-teal       { background: rgba(0,210,180,0.15); }
-    .fi-purple     { background: rgba(188,140,255,0.15); }
+    .feat-icon {
+        width: 52px; height: 52px; border-radius: 14px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.5rem; margin-bottom: 1.2rem;
+    }
 
-    .feature-title { font-family: 'Space Grotesk',sans-serif; font-size: 1rem; font-weight: 600; color: #c9d1d9; margin-bottom: 0.4rem; }
-    .feature-desc  { font-size: 0.83rem; color: #5c7a9e; line-height: 1.6; }
+    .fi-c { background: rgba(0,245,255,0.1);  box-shadow: 0 0 20px rgba(0,245,255,0.12); }
+    .fi-g { background: rgba(0,255,136,0.1);  box-shadow: 0 0 20px rgba(0,255,136,0.12); }
+    .fi-v { background: rgba(124,58,237,0.12); box-shadow: 0 0 20px rgba(124,58,237,0.15); }
+    .fi-o { background: rgba(245,158,11,0.1);  box-shadow: 0 0 20px rgba(245,158,11,0.12); }
 
-    .feature-tag  { display: inline-block; font-size: 0.68rem; font-weight: 600; padding: 2px 8px; border-radius: 100px; margin-top: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; }
-    .tag-blue     { background: rgba(56,139,253,0.15); color: #58a6ff; }
-    .tag-green    { background: rgba(63,185,80,0.15); color: #3fb950; }
-    .tag-teal     { background: rgba(0,210,180,0.15); color: #00d2b4; }
-    .tag-purple   { background: rgba(188,140,255,0.15); color: #bc8cff; }
+    .feat-title { font-family: 'Syne', sans-serif; font-size: 1.05rem; font-weight: 700; color: #e2e8f0; margin-bottom: 0.5rem; }
+    .feat-desc  { font-size: 0.83rem; color: #4a6080; line-height: 1.65; }
+    .feat-tag   { display: inline-block; font-size: 0.67rem; font-weight: 700; padding: 3px 10px; border-radius: 100px; margin-top: 1rem; text-transform: uppercase; letter-spacing: 0.8px; }
 
-    /* ── Horizontal rule ── */
-    .h-divider { height: 1px; background: rgba(255,255,255,0.05); margin: 2rem 0; }
+    .ft-c { color: #00f5ff; background: rgba(0,245,255,0.1); border: 1px solid rgba(0,245,255,0.2); }
+    .ft-g { color: #00ff88; background: rgba(0,255,136,0.1); border: 1px solid rgba(0,255,136,0.2); }
+    .ft-v { color: #a78bfa; background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.2); }
+    .ft-o { color: #fbbf24; background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2); }
 
     /* ── Disclaimer ── */
-    .disclaimer-bar {
-        background: rgba(210,153,34,0.08);
-        border: 1px solid rgba(210,153,34,0.2);
-        border-left: 3px solid #d29922;
-        border-radius: 8px;
-        padding: 0.8rem 1.2rem;
-        font-size: 0.8rem;
-        color: #b58900;
-        margin-top: 1.5rem;
-        line-height: 1.6;
+    .disc-bar {
+        background: rgba(245,158,11,0.05);
+        border: 1px solid rgba(245,158,11,0.15);
+        border-left: 3px solid #f59e0b;
+        border-radius: 12px; padding: 1rem 1.4rem;
+        font-size: 0.8rem; color: #92702a;
+        margin-top: 2rem; line-height: 1.7;
     }
+
+    /* ── Divider ── */
+    .h-div { height: 1px; background: rgba(255,255,255,0.04); margin: 2rem 0; }
 
     /* ── Sidebar ── */
     [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #060d18 0%, #0a1628 50%, #060d18 100%);
-        border-right: 1px solid rgba(56,139,253,0.1);
+        background: linear-gradient(180deg, #030712 0%, #060e1c 100%) !important;
+        border-right: 1px solid rgba(0,245,255,0.08) !important;
     }
 
-    [data-testid="stSidebar"] * { color: rgba(255,255,255,0.85) !important; }
-
-    .sidebar-logo {
-        font-family: 'Space Grotesk', sans-serif;
-        font-size: 1.3rem;
-        font-weight: 700;
-        background: linear-gradient(135deg, #388bfd, #00d2b4);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        display: block;
-        margin-bottom: 0.3rem;
+    .sb-logo {
+        font-family: 'Syne', sans-serif; font-size: 1.4rem; font-weight: 800;
+        background: linear-gradient(90deg, #00f5ff, #7c3aed);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        background-clip: text; display: block; margin-bottom: 2px;
+        filter: drop-shadow(0 0 12px rgba(0,245,255,0.3));
     }
 
-    .nav-section { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #3c5775 !important; margin-bottom: 0.5rem; margin-top: 1rem; }
-    .nav-item    { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; font-size: 0.85rem; color: #7d9db5 !important; margin-bottom: 2px; }
-    .nav-item.active { background: rgba(56,139,253,0.15); color: #58a6ff !important; font-weight: 600; }
+    .sb-tagline { font-size: 0.65rem; color: #2d4560; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600; }
 
-    .sidebar-info-block { background: rgba(13,27,42,0.8); border: 1px solid rgba(56,139,253,0.1); border-radius: 10px; padding: 0.8rem 1rem; margin-top: 0.5rem; font-size: 0.78rem; }
-    .sidebar-info-row   { display: flex; justify-content: space-between; margin-bottom: 0.4rem; color: #5c7a9e !important; }
-    .sidebar-info-val   { color: #c9d1d9 !important; font-weight: 600; }
+    .nav-sec { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: #1e3048 !important; margin: 1.2rem 0 0.5rem; }
 
-    /* ── Streamlit metric tweak ── */
-    [data-testid="stMetric"] { background: linear-gradient(145deg,#0d1b2a,#111f30) !important; border: 1px solid rgba(255,255,255,0.06) !important; border-radius: 14px !important; padding: 1rem 1.2rem !important; }
-    [data-testid="stMetricLabel"] { color: #5c7a9e !important; font-size: 0.75rem !important; }
-    [data-testid="stMetricValue"] { color: #e2e8f0 !important; font-size: 1.5rem !important; font-family: 'Space Grotesk',sans-serif !important; }
+    .nav-item {
+        display: flex; align-items: center; gap: 10px;
+        padding: 9px 12px; border-radius: 10px;
+        font-size: 0.84rem; color: #4a6080 !important;
+        margin-bottom: 2px; transition: all 0.2s ease;
+        border: 1px solid transparent;
+    }
+
+    .nav-item.active {
+        background: rgba(0,245,255,0.08);
+        border-color: rgba(0,245,255,0.15);
+        color: #00f5ff !important; font-weight: 600;
+        box-shadow: 0 0 16px rgba(0,245,255,0.06);
+    }
+
+    .sb-info {
+        background: rgba(0,245,255,0.03);
+        border: 1px solid rgba(0,245,255,0.08);
+        border-radius: 12px; padding: 0.9rem 1rem;
+        margin-top: 0.5rem;
+    }
+
+    .sb-row { display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.76rem; color: #2d4560 !important; }
+    .sb-val { color: #8ba4c0 !important; font-weight: 600; font-family: 'JetBrains Mono', monospace; font-size: 0.73rem; }
+
+    /* ── Metric override ── */
+    [data-testid="stMetric"] {
+        background: rgba(255,255,255,0.025) !important;
+        border: 1px solid rgba(255,255,255,0.06) !important;
+        border-radius: 14px !important;
+        padding: 1rem 1.2rem !important;
+        backdrop-filter: blur(8px) !important;
+    }
+    [data-testid="stMetricLabel"] { color: #4a6080 !important; font-size: 0.73rem !important; text-transform: uppercase; letter-spacing: 0.8px !important; }
+    [data-testid="stMetricValue"] { color: #f8fafc !important; font-size: 1.6rem !important; font-family: 'JetBrains Mono', monospace !important; }
+    [data-testid="stMetricDelta"] { font-family: 'JetBrains Mono', monospace !important; font-size: 0.85rem !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -366,7 +417,6 @@ st.markdown("""
 
 @st.cache_data(ttl=300)
 def load_prices(ticker: str, days: int = 365) -> pd.DataFrame:
-    """Load recent price data with caching."""
     start = (datetime.today() - timedelta(days=days)).strftime("%Y-%m-%d")
     try:
         df = get_stock_prices(ticker, start_date=start)
@@ -385,14 +435,13 @@ def load_predictions() -> pd.DataFrame:
 
 
 def format_change(value: float):
-    """Return (label, css_class) tuple."""
     if value is None or pd.isna(value):
-        return "N/A", "change-flat"
+        return "N/A", "chg-flat"
     if value > 0:
-        return f"▲ {abs(value):.2f}%", "change-up"
+        return f"▲ {abs(value):.2f}%", "chg-up"
     if value < 0:
-        return f"▼ {abs(value):.2f}%", "change-down"
-    return "0.00%", "change-flat"
+        return f"▼ {abs(value):.2f}%", "chg-down"
+    return "0.00%", "chg-flat"
 
 
 # ── Home Page ──────────────────────────────────────────────────────────────
@@ -400,65 +449,68 @@ def format_change(value: float):
 def render_home():
     now_str = datetime.now().strftime("%d %b %Y · %I:%M %p IST")
 
-    # ── Hero section ──────────────────────────────────────────────────────
+    # ── Hero ──────────────────────────────────────────────────────────────
     st.markdown(f"""
-    <div class="hero-container">
+    <div class="hero-wrap">
         <div class="hero-badge">⚡ AI-Powered &nbsp;·&nbsp; NSE &nbsp;·&nbsp; NIFTY 50</div>
-        <h1 class="hero-title">StockVision <span>AI</span></h1>
+        <h1 class="hero-title">Stock<span class="glow-text">Vision AI</span></h1>
         <p class="hero-subtitle">
             Institutional-grade market analytics, risk intelligence and ML-driven
             price forecasting for the NIFTY 50 universe — built for data-driven investors.
         </p>
-        <div class="live-row">
-            <div class="pulse-dot"></div>
-            <span class="live-text">Live Data</span>
-            &nbsp;·&nbsp; Last refreshed: {now_str}
+        <div class="live-pill">
+            <div class="pulse-ring"></div>
+            Live Data &nbsp;·&nbsp; {now_str}
         </div>
         <div class="hero-stats">
             <div>
-                <span class="hero-stat-value">{len(ALL_TICKERS)}</span>
-                <span class="hero-stat-label">Stocks Tracked</span>
+                <span class="h-stat-val">{len(ALL_TICKERS)}</span>
+                <span class="h-stat-label">Stocks Tracked</span>
             </div>
             <div>
-                <span class="hero-stat-value">{len(STOCK_UNIVERSE)}</span>
-                <span class="hero-stat-label">Sectors Covered</span>
+                <span class="h-stat-val">{len(STOCK_UNIVERSE)}</span>
+                <span class="h-stat-label">Sectors</span>
             </div>
             <div>
-                <span class="hero-stat-value">3</span>
-                <span class="hero-stat-label">ML Models</span>
+                <span class="h-stat-val">50+</span>
+                <span class="h-stat-label">Features Engineered</span>
             </div>
             <div>
-                <span class="hero-stat-value">5+yr</span>
-                <span class="hero-stat-label">Historical Data</span>
+                <span class="h-stat-val">5+ yr</span>
+                <span class="h-stat-label">Historical Data</span>
             </div>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-    # ── KPI tiles ─────────────────────────────────────────────────────────
+    # ── KPI glass cards ───────────────────────────────────────────────────
     kpi_data = [
-        ("blue",   "📊", str(len(ALL_TICKERS)), "Stocks Monitored",    "NIFTY 50 Universe"),
-        ("green",  "🏭", str(len(STOCK_UNIVERSE)), "Sectors Covered",  "IT · Banking · Energy · Auto"),
-        ("teal",   "🤖", "3",                   "ML Models Deployed",  "XGBoost · RF · Logistic"),
-        ("purple", "📅", "5+ yrs",              "Historical Data",     "Daily OHLCV via yfinance"),
+        ("cyan",   "💹", str(len(ALL_TICKERS)), "Stocks Monitored",   "NIFTY 50 Universe"),
+        ("green",  "🏭", str(len(STOCK_UNIVERSE)), "Sectors Covered", "IT · Banking · Energy · Auto"),
+        ("violet", "🤖", "3",                   "ML Models Deployed",  "XGBoost · RF · Ridge"),
+        ("orange", "📅", "5+ yrs",              "Historical Data",     "Daily OHLCV via yfinance"),
     ]
 
     kpi_cols = st.columns(4)
     for col, (color, icon, value, label, sub) in zip(kpi_cols, kpi_data):
         col.markdown(f"""
-        <div class="kpi-card {color}">
-            <span class="kpi-icon">{icon}</span>
-            <div class="kpi-value">{value}</div>
+        <div class="kpi-glass {color}">
+            <div class="kpi-glow-icon {color}">{icon}</div>
+            <span class="kpi-val">{value}</span>
             <div class="kpi-label">{label}</div>
             <div class="kpi-sub">{sub}</div>
         </div>
         """, unsafe_allow_html=True)
 
-    st.markdown('<div style="margin-bottom:2rem"></div>', unsafe_allow_html=True)
+    st.markdown('<div style="margin-bottom:2.5rem"></div>', unsafe_allow_html=True)
 
-    # ── Market snapshot ───────────────────────────────────────────────────
-    st.markdown('<p class="section-header-text">📡 Market Snapshot</p>', unsafe_allow_html=True)
-    st.markdown('<div class="section-divider"></div>', unsafe_allow_html=True)
+    # ── Market Snapshot ───────────────────────────────────────────────────
+    st.markdown("""
+    <div class="sec-label">
+        📡 Market Snapshot
+        <div class="sec-line"></div>
+    </div>
+    """, unsafe_allow_html=True)
 
     snap_cols = st.columns(len(ALL_TICKERS[:6]))
     for col, ticker in zip(snap_cols, ALL_TICKERS[:6]):
@@ -468,11 +520,11 @@ def render_home():
 
         if df.empty or len(df) < 2:
             col.markdown(f"""
-            <div class="ticker-card">
-                <div class="ticker-symbol">{short}</div>
-                <div class="ticker-name">{cname[:20]}</div>
-                <div class="ticker-price">—</div>
-                <span class="ticker-change change-flat">N/A</span>
+            <div class="tick-card">
+                <div class="tick-sym">{short}</div>
+                <div class="tick-name">{cname[:20]}</div>
+                <div class="tick-price">—</div>
+                <span class="chg-flat">N/A</span>
             </div>""", unsafe_allow_html=True)
             continue
 
@@ -482,21 +534,25 @@ def render_home():
         chg_str, chg_cls = format_change(chg)
 
         col.markdown(f"""
-        <div class="ticker-card">
-            <div class="ticker-symbol">{short}</div>
-            <div class="ticker-name">{cname[:22]}</div>
-            <div class="ticker-price">₹{latest['close_price']:,.2f}</div>
-            <span class="ticker-change {chg_cls}">{chg_str}</span>
+        <div class="tick-card">
+            <div class="tick-sym">{short}</div>
+            <div class="tick-name">{cname[:22]}</div>
+            <div class="tick-price">₹{latest['close_price']:,.0f}</div>
+            <span class="{chg_cls}">{chg_str}</span>
         </div>""", unsafe_allow_html=True)
 
-    st.markdown('<div style="margin-bottom:2rem"></div>', unsafe_allow_html=True)
+    st.markdown('<div style="margin-bottom:2.5rem"></div>', unsafe_allow_html=True)
 
-    # ── Charts row ────────────────────────────────────────────────────────
+    # ── Charts ────────────────────────────────────────────────────────────
     chart_col, side_col = st.columns([3, 2], gap="large")
 
     with chart_col:
-        st.markdown('<p class="section-header-text">📈 NIFTY 50 — 1 Year Performance</p>', unsafe_allow_html=True)
-        st.markdown('<div class="section-divider"></div>', unsafe_allow_html=True)
+        st.markdown("""
+        <div class="sec-label">
+            📈 NIFTY 50 — 3D Surface Overview
+            <div class="sec-line"></div>
+        </div>
+        """, unsafe_allow_html=True)
 
         nifty_df = load_prices(BENCHMARK_TICKER, days=365)
         if not nifty_df.empty:
@@ -510,59 +566,65 @@ def render_home():
             m2.metric("1-Year Return", f"{ytd_return:+.2f}%")
             m3.metric("52-Week High",  f"₹{max_val:,.0f}")
 
-            fig = go.Figure()
-            fig.add_trace(go.Scatter(
-                x=nifty_df["trade_date"],
-                y=nifty_df["close_price"],
-                mode="lines",
-                name="NIFTY 50",
-                line=dict(color="#388bfd", width=2.5),
-                fill="tozeroy",
-                fillcolor="rgba(56,139,253,0.07)",
-                hovertemplate="<b>%{x|%d %b %Y}</b><br>₹%{y:,.2f}<extra></extra>",
-            ))
+            # 3D Surface Chart — price over time with depth wave
+            prices   = nifty_df["close_price"].values
+            n        = len(prices)
+            x_idx    = np.arange(n)
+            depth    = np.linspace(0, 1, 8)
+            Z        = np.outer(prices, np.ones(len(depth)))
 
-            if len(nifty_df) > 50:
-                nifty_df = nifty_df.copy()
-                nifty_df["ma50"] = nifty_df["close_price"].rolling(50).mean()
-                fig.add_trace(go.Scatter(
-                    x=nifty_df["trade_date"],
-                    y=nifty_df["ma50"],
-                    mode="lines",
-                    name="50-Day MA",
-                    line=dict(color="#00d2b4", width=1.5, dash="dot"),
-                    hovertemplate="<b>50-Day MA</b><br>₹%{y:,.2f}<extra></extra>",
-                ))
+            # Add subtle wave distortion on depth axis
+            for di, d in enumerate(depth):
+                wave = np.sin(np.linspace(0, 2*np.pi, n) + d*np.pi) * prices.std() * 0.06 * (1 - d)
+                Z[:, di] = prices + wave
+
+            fig = go.Figure(data=[go.Surface(
+                x=np.outer(x_idx, np.ones(len(depth))),
+                y=np.outer(np.ones(n), depth),
+                z=Z,
+                colorscale=[
+                    [0.0,  "rgba(0,20,60,1)"],
+                    [0.3,  "rgba(0,80,180,1)"],
+                    [0.6,  "rgba(0,200,255,1)"],
+                    [0.85, "rgba(120,0,255,1)"],
+                    [1.0,  "rgba(0,255,136,1)"],
+                ],
+                opacity=0.92,
+                showscale=False,
+                contours=dict(
+                    z=dict(show=True, usecolormap=True, highlightcolor="#00f5ff", project_z=False),
+                ),
+                hovertemplate="Price: ₹%{z:,.0f}<extra></extra>",
+            )])
 
             fig.update_layout(
-                template="plotly_dark",
-                height=340,
+                scene=dict(
+                    xaxis=dict(showgrid=False, zeroline=False, showticklabels=False, title="", backgroundcolor="rgba(0,0,0,0)"),
+                    yaxis=dict(showgrid=False, zeroline=False, showticklabels=False, title="", backgroundcolor="rgba(0,0,0,0)"),
+                    zaxis=dict(
+                        showgrid=True, gridcolor="rgba(0,245,255,0.06)",
+                        zeroline=False, color="#4a6080",
+                        title="Price ₹", titlefont=dict(color="#00f5ff", size=10),
+                        tickprefix="₹", tickformat=",.0f",
+                    ),
+                    bgcolor="rgba(0,0,0,0)",
+                    camera=dict(eye=dict(x=1.8, y=-1.4, z=0.85)),
+                ),
+                height=400,
                 margin=dict(l=0, r=0, t=10, b=0),
                 paper_bgcolor="rgba(0,0,0,0)",
-                plot_bgcolor="rgba(0,0,0,0)",
-                xaxis=dict(showgrid=False, color="#3c5775", tickformat="%b '%y"),
-                yaxis=dict(
-                    showgrid=True,
-                    gridcolor="rgba(255,255,255,0.04)",
-                    color="#3c5775",
-                    tickprefix="₹",
-                    tickformat=",.0f",
-                ),
-                legend=dict(
-                    orientation="h", yanchor="top", y=1.12,
-                    xanchor="right", x=1,
-                    font=dict(size=11, color="#8b9fbe"),
-                    bgcolor="rgba(0,0,0,0)",
-                ),
-                hovermode="x unified",
             )
             st.plotly_chart(fig, use_container_width=True)
         else:
             st.info("⚠️ Run the ingestion pipeline to load market data.")
 
     with side_col:
-        st.markdown('<p class="section-header-text">🏭 Sector Distribution</p>', unsafe_allow_html=True)
-        st.markdown('<div class="section-divider"></div>', unsafe_allow_html=True)
+        st.markdown("""
+        <div class="sec-label">
+            🏭 Sector Distribution — 3D
+            <div class="sec-line"></div>
+        </div>
+        """, unsafe_allow_html=True)
 
         sectors = {}
         for ticker, info in COMPANY_INFO.items():
@@ -570,36 +632,47 @@ def render_home():
             if sec != "Benchmark":
                 sectors[sec] = sectors.get(sec, 0) + 1
 
-        sec_df = pd.DataFrame(list(sectors.items()), columns=["Sector", "Stocks"])
-        sec_df = sec_df.sort_values("Stocks", ascending=True)
+        sec_labels = list(sectors.keys())
+        sec_values = list(sectors.values())
+        neon_colors = ["#00f5ff", "#00ff88", "#7c3aed", "#f59e0b"]
 
-        bar_colors = ["#388bfd", "#3fb950", "#00d2b4", "#bc8cff"]
         fig2 = go.Figure()
-        for idx, (_, row) in enumerate(sec_df.iterrows()):
+        for i, (sec, val) in enumerate(zip(sec_labels, sec_values)):
+            color = neon_colors[i % len(neon_colors)]
             fig2.add_trace(go.Bar(
-                x=[row["Stocks"]],
-                y=[row["Sector"]],
-                orientation="h",
-                marker_color=bar_colors[idx % len(bar_colors)],
-                marker_line_width=0,
+                x=[val], y=[sec], orientation="h",
+                marker=dict(
+                    color=color,
+                    opacity=0.85,
+                    line=dict(color=color, width=0),
+                ),
                 showlegend=False,
-                hovertemplate=f"<b>{row['Sector']}</b><br>{row['Stocks']} stocks<extra></extra>",
+                hovertemplate=f"<b>{sec}</b><br>{val} stocks<extra></extra>",
+            ))
+            # Glow effect via duplicate transparent bar
+            fig2.add_trace(go.Bar(
+                x=[val], y=[sec], orientation="h",
+                marker=dict(color=color, opacity=0.15, line=dict(color=color, width=8)),
+                showlegend=False, hoverinfo="skip",
             ))
 
         fig2.update_layout(
-            template="plotly_dark",
-            height=220,
+            template="plotly_dark", height=210,
             margin=dict(l=0, r=0, t=0, b=0),
             paper_bgcolor="rgba(0,0,0,0)",
             plot_bgcolor="rgba(0,0,0,0)",
-            xaxis=dict(showgrid=False, color="#3c5775", dtick=1),
-            yaxis=dict(showgrid=False, color="#8b9fbe"),
             barmode="overlay",
+            xaxis=dict(showgrid=False, color="#2d4560", dtick=1),
+            yaxis=dict(showgrid=False, color="#7d8fa8"),
         )
         st.plotly_chart(fig2, use_container_width=True)
 
-        st.markdown('<p class="section-header-text" style="margin-top:1rem">🔮 Latest AI Forecasts</p>', unsafe_allow_html=True)
-        st.markdown('<div class="section-divider"></div>', unsafe_allow_html=True)
+        st.markdown("""
+        <div class="sec-label" style="margin-top:1.2rem">
+            🔮 Latest AI Forecasts
+            <div class="sec-line"></div>
+        </div>
+        """, unsafe_allow_html=True)
 
         preds_df = load_predictions()
         if not preds_df.empty:
@@ -624,21 +697,25 @@ def render_home():
             st.info("🤖 Run training & prediction pipeline to see forecasts.")
 
     # ── Feature nav cards ─────────────────────────────────────────────────
-    st.markdown('<div class="h-divider"></div>', unsafe_allow_html=True)
-    st.markdown('<p class="section-header-text">🚀 Explore the Platform</p>', unsafe_allow_html=True)
-    st.markdown('<div class="section-divider"></div>', unsafe_allow_html=True)
+    st.markdown('<div class="h-div"></div>', unsafe_allow_html=True)
+    st.markdown("""
+    <div class="sec-label">
+        🚀 Explore the Platform
+        <div class="sec-line"></div>
+    </div>
+    """, unsafe_allow_html=True)
 
     features = [
-        ("fi-blue",   "tag-blue",   "📊", "Stock Explorer",
-         "Interactive candlestick charts, RSI, MACD, Bollinger Bands and full technical analysis suite.",
+        ("fi-c", "ft-c", "📊", "Stock Explorer",
+         "Interactive 3D candlestick charts, RSI, MACD, Bollinger Bands and full technical analysis suite.",
          "Charts & Indicators"),
-        ("fi-green",  "tag-green",  "🔮", "Forecast Centre",
-         "ML-powered next-day and 5-day price direction predictions with confidence scores.",
+        ("fi-g", "ft-g", "🔮", "Forecast Centre",
+         "ML-powered next-day and 5-day price direction predictions with animated confidence gauges.",
          "AI Predictions"),
-        ("fi-teal",   "tag-teal",   "🧪", "Model Laboratory",
-         "Compare model performance, leaderboard rankings, feature importance and evaluation metrics.",
+        ("fi-v", "ft-v", "🧪", "Model Laboratory",
+         "3D model comparison scatter, leaderboard rankings, feature importance and evaluation metrics.",
          "ML Insights"),
-        ("fi-purple", "tag-purple", "🔍", "Data Quality",
+        ("fi-o", "ft-o", "🔍", "Data Quality",
          "Monitor pipeline health, data freshness, missing records and ingestion integrity.",
          "Pipeline Health"),
     ]
@@ -646,16 +723,16 @@ def render_home():
     fc = st.columns(4, gap="medium")
     for col, (fi_cls, tag_cls, icon, title, desc, tag) in zip(fc, features):
         col.markdown(f"""
-        <div class="feature-card">
-            <div class="feature-icon {fi_cls}">{icon}</div>
-            <div class="feature-title">{title}</div>
-            <div class="feature-desc">{desc}</div>
-            <span class="feature-tag {tag_cls}">{tag}</span>
+        <div class="feat-card">
+            <div class="feat-icon {fi_cls}">{icon}</div>
+            <div class="feat-title">{title}</div>
+            <div class="feat-desc">{desc}</div>
+            <span class="feat-tag {tag_cls}">{tag}</span>
         </div>""", unsafe_allow_html=True)
 
     # ── Disclaimer ────────────────────────────────────────────────────────
     st.markdown("""
-    <div class="disclaimer-bar">
+    <div class="disc-bar">
         ⚠️ <strong>Important Disclaimer:</strong> All forecasts and analytics are generated
         from historical market data for <strong>educational and research purposes only</strong>.
         They do not constitute financial or investment advice. Past market patterns do not
@@ -669,14 +746,12 @@ def render_home():
 
 with st.sidebar:
     st.markdown("""
-    <span class="sidebar-logo">📈 StockVision AI</span>
-    <span style="font-size:0.72rem;color:#3c5775;text-transform:uppercase;letter-spacing:0.8px;">
-        Market Analytics Platform
-    </span>
+    <span class="sb-logo">📈 StockVision</span>
+    <span class="sb-tagline">AI Market Analytics Platform</span>
     """, unsafe_allow_html=True)
 
-    st.markdown('<div class="h-divider" style="margin:0.8rem 0;"></div>', unsafe_allow_html=True)
-    st.markdown('<div class="nav-section">Navigation</div>', unsafe_allow_html=True)
+    st.markdown('<div class="h-div" style="margin:0.8rem 0;"></div>', unsafe_allow_html=True)
+    st.markdown('<div class="nav-sec">Navigation</div>', unsafe_allow_html=True)
 
     nav_items = [
         ("🏠", "Home",             True),
@@ -689,22 +764,21 @@ with st.sidebar:
         cls = "nav-item active" if active else "nav-item"
         st.markdown(f'<div class="{cls}">{icon}&nbsp;&nbsp;{label}</div>', unsafe_allow_html=True)
 
-    st.markdown('<div class="h-divider" style="margin:0.8rem 0;"></div>', unsafe_allow_html=True)
-    st.markdown('<div class="nav-section">Platform Info</div>', unsafe_allow_html=True)
+    st.markdown('<div class="h-div" style="margin:0.8rem 0;"></div>', unsafe_allow_html=True)
+    st.markdown('<div class="nav-sec">Platform Info</div>', unsafe_allow_html=True)
 
     st.markdown(f"""
-    <div class="sidebar-info-block">
-        <div class="sidebar-info-row"><span>Universe</span><span class="sidebar-info-val">NIFTY 50</span></div>
-        <div class="sidebar-info-row"><span>Stocks</span><span class="sidebar-info-val">{len(ALL_TICKERS)} tracked</span></div>
-        <div class="sidebar-info-row"><span>Forecast</span><span class="sidebar-info-val">1-day &amp; 5-day</span></div>
-        <div class="sidebar-info-row"><span>Models</span><span class="sidebar-info-val">XGB · RF · LR</span></div>
-        <div class="sidebar-info-row" style="margin-bottom:0"><span>Data</span><span class="sidebar-info-val">yfinance</span></div>
+    <div class="sb-info">
+        <div class="sb-row"><span>Universe</span><span class="sb-val">NIFTY 50</span></div>
+        <div class="sb-row"><span>Stocks</span><span class="sb-val">{len(ALL_TICKERS)} tracked</span></div>
+        <div class="sb-row"><span>Forecast</span><span class="sb-val">1d &amp; 5d</span></div>
+        <div class="sb-row"><span>Models</span><span class="sb-val">XGB · RF · LR</span></div>
+        <div class="sb-row" style="margin-bottom:0"><span>Data</span><span class="sb-val">yfinance</span></div>
     </div>
     """, unsafe_allow_html=True)
 
-    st.markdown('<div class="h-divider" style="margin:0.8rem 0;"></div>', unsafe_allow_html=True)
+    st.markdown('<div class="h-div" style="margin:0.8rem 0;"></div>', unsafe_allow_html=True)
     st.caption("Built for Data Analyst Portfolio · 2024\nPowered by XGBoost · Streamlit · Plotly")
-
 
 
 # ── Render ─────────────────────────────────────────────────────────────────
