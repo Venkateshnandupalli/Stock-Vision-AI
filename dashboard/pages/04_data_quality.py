@@ -26,7 +26,15 @@ st.markdown("""
 @keyframes pageFadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 
 html, body, [class*="css"] { font-family: 'Plus Jakarta Sans', sans-serif; background: #030712; color: #e2e8f0; }
-    #MainMenu, footer, header { visibility: hidden; }
+    #MainMenu { visibility: hidden; }
+    footer { visibility: hidden; }
+    header { visibility: hidden !important; height: 0 !important; }
+    .stDeployButton { display: none !important; }
+    [data-testid="stHeader"] { display: none !important; }
+    [data-testid="stTopBar"] { display: none !important; }
+    [data-testid="collapsedControl"] { display: none !important; }
+    [data-testid="stMainBlockContainer"], [data-testid="stMain"],
+    section[data-testid="stSidebar"] ~ div, .main .block-container { background: #030712 !important; }
     .block-container { padding-top: 1rem !important; max-width: 1440px; }
 
     [data-testid="stSidebar"] {

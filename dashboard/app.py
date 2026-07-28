@@ -85,9 +85,22 @@ st.markdown("""
         max-width: 1440px;
     }
 
-    /* ── Hide Streamlit chrome ── */
-    #MainMenu, footer, header { visibility: hidden; }
-    .stDeployButton { display: none; }
+    /* ── Hide all Streamlit chrome & top nav ── */
+    #MainMenu { visibility: hidden; }
+    footer { visibility: hidden; }
+    header { visibility: hidden !important; height: 0 !important; }
+    .stDeployButton { display: none !important; }
+
+    /* Hide the top navigation bar that shows old page links */
+    [data-testid="stHeader"] { display: none !important; }
+    [data-testid="stTopBar"] { display: none !important; }
+    [data-testid="collapsedControl"] { display: none !important; }
+
+    /* Kill any white background that flashes before CSS loads */
+    [data-testid="stMainBlockContainer"],
+    [data-testid="stMain"],
+    section[data-testid="stSidebar"] ~ div,
+    .main .block-container { background: #030712 !important; }
 
     /* ── Scrollbar ── */
     ::-webkit-scrollbar { width: 5px; }
