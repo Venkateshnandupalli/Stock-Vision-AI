@@ -53,6 +53,13 @@ st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
+    /* ── Remove Blue Focus Outlines ── */
+    *:focus { outline: none !important; }
+    button:focus, button:active { outline: none !important; box-shadow: none !important; }
+    a:focus, a:active { outline: none !important; box-shadow: none !important; }
+    [tabindex]:focus { outline: none !important; }
+    [data-testid="stSidebarNav"] a:focus { background-color: transparent !important; }
+
     /* ── Kill white flash on page transition ── */
     html, body {
         background: #030712 !important;

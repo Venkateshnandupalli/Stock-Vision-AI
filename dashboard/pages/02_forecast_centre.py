@@ -17,7 +17,14 @@ st.set_page_config(page_title="Forecast Centre | StockVision AI", page_icon="�
 
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Space+Grotesk:wght@400;500;600;700');
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+    /* ── Remove Blue Focus Outlines ── */
+    *:focus { outline: none !important; }
+    button:focus, button:active { outline: none !important; box-shadow: none !important; }
+    a:focus, a:active { outline: none !important; box-shadow: none !important; }
+    [tabindex]:focus { outline: none !important; }
+    [data-testid="stSidebarNav"] a:focus { background-color: transparent !important; }
 
     html, body { background: #030712 !important; }
 [data-testid="stApp"], [data-testid="stAppViewContainer"] { background: #030712 !important; }
