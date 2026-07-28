@@ -22,8 +22,8 @@ st.markdown("""
 
     html, body { background: #030712 !important; }
 [data-testid="stApp"], [data-testid="stAppViewContainer"] { background: #030712 !important; }
-[data-testid="stAppViewBlockContainer"] { animation: pageFadeIn 0.35s ease; }
-@keyframes pageFadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+[data-testid="stAppViewBlockContainer"] { animation: pageFadeIn 0.1s ease-out; }
+@keyframes pageFadeIn { from { opacity: 0; transform: translateY(2px); } to { opacity: 1; transform: translateY(0); } }
 
 html, body, [class*="css"] { font-family: 'Plus Jakarta Sans', sans-serif; background: #030712; color: #e2e8f0; }
     #MainMenu { visibility: hidden; }

@@ -21,8 +21,8 @@ st.markdown("""
 
     html, body { background: #030712 !important; }
 [data-testid="stApp"], [data-testid="stAppViewContainer"] { background: #030712 !important; }
-[data-testid="stAppViewBlockContainer"] { animation: pageFadeIn 0.35s ease; }
-@keyframes pageFadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+[data-testid="stAppViewBlockContainer"] { animation: pageFadeIn 0.1s ease-out; }
+@keyframes pageFadeIn { from { opacity: 0; transform: translateY(2px); } to { opacity: 1; transform: translateY(0); } }
 
 html, body, [class*="css"] { font-family: 'Plus Jakarta Sans', sans-serif; background: #030712; color: #e2e8f0; }
     #MainMenu { visibility: hidden; }
@@ -313,8 +313,12 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 try:
-    from src.database.queries import get_latest_predictions
-    preds_df = get_latest_predictions(ticker=ticker)
+    @st.cache_data(ttl=300)
+    def load_historical_predictions(t):
+        from src.database.queries import get_latest_predictions
+        return get_latest_predictions(ticker=t)
+
+    preds_df = load_historical_predictions(ticker)
     if not preds_df.empty and "actual_return" in preds_df.columns:
         preds_df = preds_df.dropna(subset=["actual_return", "predicted_return"])
         if not preds_df.empty:
