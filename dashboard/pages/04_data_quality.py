@@ -18,9 +18,14 @@ st.set_page_config(page_title="Data Quality | StockVision AI", page_icon="🔍",
 
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&family=Inter:wght@300;400;500;600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Space+Grotesk:wght@400;500;600;700');
 
-    html, body, [class*="css"] { font-family: 'Inter', sans-serif; background: #030712; color: #e2e8f0; }
+    html, body { background: #030712 !important; }
+[data-testid="stApp"], [data-testid="stAppViewContainer"] { background: #030712 !important; }
+[data-testid="stAppViewBlockContainer"] { animation: pageFadeIn 0.35s ease; }
+@keyframes pageFadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+html, body, [class*="css"] { font-family: 'Plus Jakarta Sans', sans-serif; background: #030712; color: #e2e8f0; }
     #MainMenu, footer, header { visibility: hidden; }
     .block-container { padding-top: 1rem !important; max-width: 1440px; }
 
@@ -32,7 +37,7 @@ st.markdown("""
     [data-testid="stSidebarNav"] a {
         display: flex !important; align-items: center !important;
         padding: 9px 12px !important; border-radius: 10px !important;
-        font-size: 0.84rem !important; font-family: 'Inter', sans-serif !important;
+        font-size: 0.84rem !important; font-family: 'Plus Jakarta Sans', sans-serif !important;
         color: #4a6080 !important; text-decoration: none !important;
         transition: all 0.22s ease !important; border: 1px solid transparent !important;
         margin-bottom: 2px !important;
@@ -69,7 +74,7 @@ st.markdown("""
     }
 
     .page-title {
-        font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800;
+        font-family: 'Space Grotesk', sans-serif; font-size: 2rem; font-weight: 800;
         background: linear-gradient(90deg, #f59e0b, #fbbf24);
         -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
         filter: drop-shadow(0 0 12px rgba(245,158,11,0.25)); margin: 0 0 0.3rem 0;
@@ -78,7 +83,7 @@ st.markdown("""
     .page-subtitle { font-size: 0.85rem; color: #3d5268; }
 
     .sec-label {
-        font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700;
+        font-family: 'Space Grotesk', sans-serif; font-size: 1rem; font-weight: 700;
         color: #e2e8f0; margin-bottom: 0.6rem; display: flex; align-items: center; gap: 8px;
     }
     .sec-line { height: 1px; flex: 1; background: linear-gradient(90deg, rgba(245,158,11,0.35), transparent); }
@@ -158,7 +163,7 @@ st.markdown("""
         box-shadow: 0 12px 30px rgba(0,0,0,0.4);
     }
 
-    .action-title { font-family: 'Syne', sans-serif; font-size: 0.9rem; font-weight: 700; color: #e2e8f0; margin-bottom: 0.5rem; }
+    .action-title { font-family: 'Space Grotesk', sans-serif; font-size: 0.9rem; font-weight: 700; color: #e2e8f0; margin-bottom: 0.5rem; }
     .action-cmd   { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: #00f5ff; background: rgba(0,245,255,0.05); border: 1px solid rgba(0,245,255,0.1); border-radius: 8px; padding: 8px 12px; margin-top: 0.5rem; }
 
     .footer-bar { font-size: 0.72rem; color: #1e3048; text-align: center; margin-top: 2rem; font-family: 'JetBrains Mono', monospace; }

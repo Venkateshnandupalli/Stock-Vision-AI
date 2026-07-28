@@ -51,11 +51,30 @@ st.set_page_config(
 # ── Premium 3D CSS ─────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+    /* ── Kill white flash on page transition ── */
+    html, body {
+        background: #030712 !important;
+    }
+
+    [data-testid="stApp"], [data-testid="stAppViewContainer"] {
+        background: #030712 !important;
+    }
+
+    /* Smooth page fade-in */
+    [data-testid="stAppViewBlockContainer"] {
+        animation: pageFadeIn 0.35s ease;
+    }
+
+    @keyframes pageFadeIn {
+        from { opacity: 0; transform: translateY(6px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
 
     /* ── Global Reset ── */
     html, body, [class*="css"] {
-        font-family: 'Inter', sans-serif;
+        font-family: 'Plus Jakarta Sans', sans-serif;
         background-color: #030712;
         color: #e2e8f0;
     }
@@ -135,7 +154,7 @@ st.markdown("""
     }
 
     .hero-title {
-        font-family: 'Syne', sans-serif;
+        font-family: 'Space Grotesk', sans-serif;
         font-size: 3.4rem; font-weight: 800;
         color: #f8fafc; line-height: 1.1;
         margin: 0 0 1rem 0; letter-spacing: -1.5px;
@@ -262,7 +281,7 @@ st.markdown("""
 
     /* ── Section label ── */
     .sec-label {
-        font-family: 'Syne', sans-serif;
+        font-family: 'Space Grotesk', sans-serif;
         font-size: 1.15rem; font-weight: 700; color: #e2e8f0;
         margin: 0 0 0.4rem 0; display: flex; align-items: center; gap: 10px;
     }
@@ -333,7 +352,7 @@ st.markdown("""
     .fi-v { background: rgba(124,58,237,0.12); box-shadow: 0 0 20px rgba(124,58,237,0.15); }
     .fi-o { background: rgba(245,158,11,0.1);  box-shadow: 0 0 20px rgba(245,158,11,0.12); }
 
-    .feat-title { font-family: 'Syne', sans-serif; font-size: 1.05rem; font-weight: 700; color: #e2e8f0; margin-bottom: 0.5rem; }
+    .feat-title { font-family: 'Space Grotesk', sans-serif; font-size: 1.05rem; font-weight: 700; color: #e2e8f0; margin-bottom: 0.5rem; }
     .feat-desc  { font-size: 0.83rem; color: #4a6080; line-height: 1.65; }
     .feat-tag   { display: inline-block; font-size: 0.67rem; font-weight: 700; padding: 3px 10px; border-radius: 100px; margin-top: 1rem; text-transform: uppercase; letter-spacing: 0.8px; }
 
@@ -377,7 +396,7 @@ st.markdown("""
         padding: 9px 12px !important;
         border-radius: 10px !important;
         font-size: 0.84rem !important;
-        font-family: 'Inter', sans-serif !important;
+        font-family: 'Plus Jakarta Sans', sans-serif !important;
         color: #4a6080 !important;
         text-decoration: none !important;
         transition: all 0.22s ease !important;
@@ -412,7 +431,7 @@ st.markdown("""
     }
 
     .sb-logo {
-        font-family: 'Syne', sans-serif; font-size: 1.4rem; font-weight: 800;
+        font-family: 'Space Grotesk', sans-serif; font-size: 1.4rem; font-weight: 800;
         background: linear-gradient(90deg, #00f5ff, #7c3aed);
         -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         background-clip: text; display: block; margin-bottom: 2px;
